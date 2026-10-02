@@ -1,0 +1,1085 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="안유화 「부의 곡선」 L-BEP 계산기. 월 필수생활비와 세후 지속가능 월 현금흐름으로 Life Gap, L-BEP 달성률, 현재 구간, 세 가지 미래 시나리오를 계산합니다. 입력값은 내 기기에만 저장됩니다.">
+<meta property="og:title" content="부의 곡선 L-BEP 계산기">
+<meta property="og:description" content="내 인생의 손익분기점을 숫자로 바꾸는 도구. 로그인·설치 없이 사용.">
+<meta property="og:type" content="website">
+<meta name="robots" content="index,follow">
+<title>부의 곡선 L-BEP 계산기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Gowun+Batang:wght@400;700&display=swap">
+<style>
+/* Layout: one worksheet column (max 880px) that follows the book's worksheet order (①비용 → ②현금흐름 → 진단 → 시나리오 → 두 곡선 → 새는 돈 → 여섯 봉투); sticky step nav on top, fixed 계기판 bar at the bottom. */
+:root{
+  --bg:#f3f5f8; --surface:#ffffff; --surface-2:#eaeef4; --ink:#161a21; --ink-2:#48515f; --muted:#737d8c;
+  --line:#dde2ea; --line-2:#c6cdd8;
+  --accent:#1d5fc2; --accent-ink:#ffffff; --accent-soft:#e3ecfb;
+  --cost:#e34948; --income:#2a78d6;
+  --good:#0ca30c; --warn:#fab219; --serious:#ec835a; --critical:#d03b3b;
+  --good-soft:#dff3df; --warn-soft:#fdf0d0; --serious-soft:#fde4da; --critical-soft:#f8dcdc; --neutral-soft:#e6eaf0;
+  --grid:#e4e7ec; --axis:#c3c8d1;
+  --font-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --font-display:"Gowun Batang","Apple SD Gothic Neo","Malgun Gothic",serif;
+  --shadow:0 1px 2px rgba(22,26,33,.05),0 10px 28px rgba(22,26,33,.06);
+  --radius:14px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f1115; --surface:#171a20; --surface-2:#20242c; --ink:#f1f3f6; --ink-2:#c2c8d2; --muted:#8f98a6;
+    --line:#2a2f39; --line-2:#3a404c;
+    --accent:#4f8fe8; --accent-ink:#0b1424; --accent-soft:#1a2a45;
+    --cost:#e66767; --income:#3987e5;
+    --good-soft:#163a16; --warn-soft:#3f3110; --serious-soft:#44281c; --critical-soft:#44191b; --neutral-soft:#262b35;
+    --grid:#262b33; --axis:#3a404c;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px rgba(0,0,0,.35);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f1115; --surface:#171a20; --surface-2:#20242c; --ink:#f1f3f6; --ink-2:#c2c8d2; --muted:#8f98a6;
+  --line:#2a2f39; --line-2:#3a404c;
+  --accent:#4f8fe8; --accent-ink:#0b1424; --accent-soft:#1a2a45;
+  --cost:#e66767; --income:#3987e5;
+  --good-soft:#163a16; --warn-soft:#3f3110; --serious-soft:#44281c; --critical-soft:#44191b; --neutral-soft:#262b35;
+  --grid:#262b33; --axis:#3a404c;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px rgba(0,0,0,.35);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:16px;line-height:1.55;-webkit-text-size-adjust:100%}
+.wrap{max-width:880px;margin:0 auto;padding-inline:16px;padding-block:0 112px}
+h1,h2,h3{text-wrap:balance;margin:0}
+h1{font-family:var(--font-display);font-weight:700;font-size:clamp(28px,5vw,40px);line-height:1.2;letter-spacing:-.01em}
+h2{font-family:var(--font-display);font-weight:700;font-size:clamp(21px,3.4vw,26px);line-height:1.3}
+h3{font-size:17px;font-weight:600}
+p{margin:0}
+a{color:var(--accent)}
+.eyebrow{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.muted{color:var(--muted)}
+.small{font-size:13.5px;line-height:1.5}
+.note{font-size:13.5px;color:var(--ink-2);line-height:1.55}
+
+/* header */
+.hero{padding-block:36px 20px;display:grid;gap:14px}
+.hero .lead{font-size:17px;color:var(--ink-2);max-width:62ch}
+.hero .quote{font-family:var(--font-display);font-size:18px;color:var(--ink);border-left:3px solid var(--accent);padding-left:14px;line-height:1.6}
+.formulas{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.formula{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.formula .eyebrow{margin-bottom:4px}
+.formula .f{font-weight:600;font-size:15px;line-height:1.45}
+
+/* step nav */
+.stepnav{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--bg) 86%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line);margin-inline:-16px;padding-inline:16px}
+.stepnav ul{list-style:none;margin:0;padding:10px 0;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none}
+.stepnav ul::-webkit-scrollbar{display:none}
+.stepnav a{white-space:nowrap;text-decoration:none;color:var(--ink-2);font-size:13.5px;font-weight:500;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px}
+.stepnav a b{color:var(--accent);font-weight:700;margin-right:4px}
+.stepnav a:hover,.stepnav a:focus-visible{border-color:var(--accent);color:var(--ink)}
+
+/* sections */
+section.ws{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:22px 20px;margin-top:22px;box-shadow:var(--shadow);scroll-margin-top:72px}
+.ws-head{display:grid;gap:6px;margin-bottom:16px}
+.ws-head .tag{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);font-weight:500}
+.ws-head .tag b{color:var(--accent);font-weight:700}
+.ws-head .intro{color:var(--ink-2);max-width:68ch}
+.callout{background:var(--surface-2);border-radius:12px;padding:12px 14px;font-size:14px;color:var(--ink-2);line-height:1.55}
+.callout b{color:var(--ink)}
+.callout ul{margin:6px 0 0;padding-left:18px}
+.callout li{margin:2px 0}
+
+/* tables of inputs */
+table{border-collapse:collapse;width:100%}
+.tbl-wrap{overflow-x:auto;margin-inline:-4px;padding-inline:4px}
+.tbl th{font-size:12.5px;font-weight:600;color:var(--muted);text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+.tbl td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+.tbl td.lab{font-size:14.5px;font-weight:500;min-width:150px}
+.tbl td.lab .sub{display:block;font-size:12px;color:var(--muted);font-weight:400;line-height:1.35}
+.tbl tr.total td{border-bottom:none;padding-top:10px;font-weight:600}
+.tbl tr.total td.lab{font-size:15px}
+.tbl tr.group td{background:var(--surface-2);font-size:12.5px;font-weight:600;color:var(--ink-2);padding:6px 8px;border-bottom:none}
+.num{font-variant-numeric:tabular-nums}
+.val{font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.val.pos{color:var(--ink)}
+td.right,th.right{text-align:right}
+
+/* inputs */
+.money{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line-2);border-radius:9px;background:var(--surface);padding:0 10px 0 0;width:150px;max-width:100%}
+.money input{width:100%;min-width:0;border:0;background:transparent;color:var(--ink);font:inherit;font-weight:500;font-variant-numeric:tabular-nums;padding:8px 10px;text-align:right;outline:none}
+.money input::placeholder{color:var(--muted);font-weight:400}
+.money .unit{font-size:12.5px;color:var(--muted);white-space:nowrap}
+.money:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.money.sm{width:120px}
+.text{width:100%;border:1px solid var(--line-2);border-radius:9px;background:var(--surface);color:var(--ink);font:inherit;padding:8px 10px;outline:none}
+.text:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+textarea.text{min-height:64px;resize:vertical;line-height:1.45;font-size:14.5px}
+select.text{width:auto}
+input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+input[type=number]{-moz-appearance:textfield;appearance:textfield}
+label.inline{display:flex;align-items:center;gap:8px;font-size:14px;flex-wrap:wrap}
+.field{display:grid;gap:6px}
+.field .lab{font-size:13.5px;font-weight:600;color:var(--ink-2)}
+.fields{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:end}
+
+/* buttons */
+.btn{appearance:none;border:1px solid var(--line-2);background:var(--surface);color:var(--ink);font:inherit;font-size:14px;font-weight:600;border-radius:999px;padding:8px 14px;cursor:pointer;line-height:1.2}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn:focus-visible,.text:focus-visible,.money input:focus-visible,.stepnav a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{color:var(--accent-ink);filter:brightness(1.06)}
+.btn.sm{font-size:13px;padding:6px 11px}
+.btn.danger{color:var(--critical);border-color:var(--critical)}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.toast{font-size:13.5px;color:var(--ink-2)}
+
+/* result tiles */
+.tiles{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+.tile{background:var(--surface-2);border-radius:12px;padding:12px 14px;display:grid;gap:2px;min-width:0}
+.tile .k{font-size:12.5px;color:var(--muted);font-weight:500}
+.tile .v{font-size:22px;font-weight:700;line-height:1.2;word-break:keep-all}
+.tile .d{font-size:12.5px;color:var(--ink-2)}
+.hero-stat{display:grid;gap:10px;grid-template-columns:1fr;align-items:center}
+.hero-stat .big{font-size:clamp(44px,9vw,64px);font-weight:700;line-height:1;letter-spacing:-.02em}
+.hero-stat .big small{font-size:.45em;font-weight:600;color:var(--muted);margin-left:4px}
+.pill{display:inline-flex;align-items:center;gap:7px;border-radius:999px;padding:5px 12px;font-size:14px;font-weight:600;background:var(--neutral-soft);color:var(--ink)}
+.pill .dot{width:10px;height:10px;border-radius:50%;background:var(--muted)}
+.pill.tone-serious{background:var(--serious-soft)} .pill.tone-serious .dot{background:var(--serious)}
+.pill.tone-warn{background:var(--warn-soft)} .pill.tone-warn .dot{background:var(--warn)}
+.pill.tone-accent{background:var(--accent-soft)} .pill.tone-accent .dot{background:var(--accent)}
+.pill.tone-good{background:var(--good-soft)} .pill.tone-good .dot{background:var(--good)}
+.meter{position:relative;height:14px;border-radius:7px;background:var(--surface-2);overflow:visible;margin-top:12px}
+.meter .seg{position:absolute;top:0;height:100%;}
+.meter .seg.z0{left:0;width:1.5%;background:var(--muted);border-radius:7px 0 0 7px}
+.meter .seg.z1{left:1.5%;width:23.5%;background:var(--serious);opacity:.35}
+.meter .seg.z2{left:25%;width:33.3%;background:var(--warn);opacity:.35}
+.meter .seg.z3{left:58.3%;width:25%;background:var(--accent);opacity:.35}
+.meter .seg.z4{left:83.3%;width:16.7%;background:var(--good);opacity:.35;border-radius:0 7px 7px 0}
+.meter .fill{position:absolute;left:0;top:0;height:100%;background:var(--accent);border-radius:7px;max-width:100%;transition:width .35s ease}
+.meter .mark{position:absolute;top:-5px;width:4px;height:24px;background:var(--ink);border-radius:2px;transform:translateX(-50%);box-shadow:0 0 0 2px var(--surface)}
+.meter-ticks{position:relative;height:18px;font-size:11.5px;color:var(--muted);margin-top:6px;font-variant-numeric:tabular-nums}
+.meter-ticks span{position:absolute;top:0;transform:translateX(-50%)}
+.meter-ticks span:first-child{transform:none}
+.meter-ticks span:last-child{transform:translateX(-100%)}
+@media (prefers-reduced-motion: reduce){.meter .fill{transition:none}}
+.zone-card{border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:grid;gap:8px}
+.zone-card .row{display:grid;grid-template-columns:96px 1fr;gap:10px;font-size:14.5px}
+.zone-card .row .k{color:var(--muted);font-weight:600;font-size:13px}
+.zones{font-size:13.5px}
+.zones th,.zones td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top;text-align:left}
+.zones th{color:var(--muted);font-size:12.5px;font-weight:600;white-space:nowrap}
+.zones td.z{white-space:nowrap;font-weight:600}
+.zones tr.on td{background:var(--accent-soft)}
+.split{display:grid;gap:16px;grid-template-columns:1fr}
+@media (min-width:720px){.split.two{grid-template-columns:1fr 1fr}}
+
+/* scenario cards */
+.scen{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.scard{border:1px solid var(--line);border-radius:12px;padding:14px;display:grid;gap:10px;background:var(--surface);min-width:0}
+.scard.base{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.scard h3{font-size:16px}
+.scard .desc{font-size:12.5px;color:var(--muted);line-height:1.4}
+.scard .out{display:grid;gap:6px;border-top:1px solid var(--line);padding-top:10px}
+.scard .out .r{display:flex;justify-content:space-between;gap:10px;font-size:14px}
+.scard .out .r .k{color:var(--ink-2)}
+.scard .out .r.big .v{font-size:20px;font-weight:700}
+.scard .calc{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;line-height:1.4}
+.scard .field .money{width:100%}
+
+/* chart */
+.chart-box{border:1px solid var(--line);border-radius:12px;padding:12px 10px 8px;background:var(--surface);position:relative}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--ink-2);padding:0 6px 6px}
+.legend .key{display:inline-flex;align-items:center;gap:6px}
+.legend .sw{width:22px;height:0;border-top:3px solid;border-radius:2px}
+.legend .sw.cost{border-color:var(--cost)} .legend .sw.income{border-color:var(--income)}
+.legend .mk{width:9px;height:9px;display:inline-block;background:var(--cost);border-radius:50%}
+.legend .mk.income{background:var(--income);border-radius:1px;transform:rotate(45deg)}
+svg.curve{width:100%;height:auto;display:block;touch-action:pan-y}
+svg.curve text{font-family:var(--font-body);fill:var(--muted);font-size:11px;font-variant-numeric:tabular-nums}
+svg.curve .grid{stroke:var(--grid);stroke-width:1}
+svg.curve .axis{stroke:var(--axis);stroke-width:1}
+svg.curve .line{fill:none;stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
+svg.curve .line.cost{stroke:var(--cost)} svg.curve .line.income{stroke:var(--income)}
+svg.curve .mk{stroke:var(--surface);stroke-width:2}
+svg.curve .mk.cost{fill:var(--cost)} svg.curve .mk.income{fill:var(--income)}
+svg.curve .xline{stroke:var(--ink);stroke-width:1;stroke-dasharray:3 3;opacity:.6}
+svg.curve .xlab{fill:var(--ink);font-weight:600;font-size:11.5px}
+svg.curve .hover{stroke:var(--ink-2);stroke-width:1;opacity:.5}
+.tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--bg);font-size:12.5px;border-radius:8px;padding:8px 10px;line-height:1.4;white-space:nowrap;box-shadow:var(--shadow);transform:translate(-50%,-110%);display:none}
+.tip b{font-weight:700}
+.cross-note{font-size:14px;margin-top:10px;color:var(--ink-2)}
+.cross-note b{color:var(--ink)}
+
+/* dashboard bar */
+.dash{position:fixed;left:0;right:0;bottom:0;z-index:30;background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--line);padding:8px 12px calc(8px + env(safe-area-inset-bottom,0px))}
+.dash .in{max-width:880px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.dash .m{display:grid;gap:0;min-width:0}
+.dash .m .k{font-size:10.5px;color:var(--muted);font-weight:600;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dash .m .v{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (min-width:600px){.dash .m .v{font-size:17px}.dash .m .k{font-size:11.5px}}
+
+/* misc */
+.foot{margin-top:28px;padding-top:16px;border-top:1px solid var(--line);font-size:13px;color:var(--muted);line-height:1.6}
+.warn-text{color:var(--critical);font-weight:600;font-size:13.5px}
+.ok-text{color:var(--good);font-weight:600;font-size:13.5px}
+.confirm{display:inline-flex;gap:8px;align-items:center;font-size:14px}
+.sumbox{white-space:pre-wrap;font-size:13.5px;line-height:1.6;background:var(--surface-2);border-radius:12px;padding:12px 14px;font-variant-numeric:tabular-nums;word-break:keep-all}
+details.help{border:1px solid var(--line);border-radius:12px;padding:10px 14px;font-size:14px}
+details.help summary{cursor:pointer;font-weight:600;color:var(--ink-2)}
+details.help .body{margin-top:8px;color:var(--ink-2);line-height:1.55}
+.wd-help{display:none;background:var(--surface-2);border-radius:10px;padding:10px 12px;margin-top:6px}
+.wd-help.open{display:block}
+.wd-help .fields{gap:10px 16px}
+.wd-help .money{width:130px}
+@media print{
+  body{background:#fff;color:#000}
+  .dash,.stepnav,.btnrow,.confirm,#howto,.tip{display:none!important}
+  .wrap{padding-block:0;max-width:none}
+  section.ws{box-shadow:none;border-color:#bbb;break-inside:avoid;page-break-inside:avoid}
+  .money,.text{border-color:#999}
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="hero">
+    <div class="eyebrow">안유화 「부의 곡선」 · 생애자산론 계기판</div>
+    <h1>L-BEP 계산기</h1>
+    <p class="lead">내 인생의 손익분기점(Life Break-Even Point)을 숫자로 바꾸는 도구입니다. 월 필수생활비와 세후 지속가능 월 현금흐름 두 숫자만 적으면 Life Gap, L-BEP 달성률, 현재 구간, 세 가지 미래 시나리오가 계산됩니다. 숫자가 정확하지 않아도 됩니다. 대략이라도 적는 것이 출발점입니다.</p>
+    <p class="quote">불안은 숫자가 없을 때 커진다. 숫자가 생기면 불안은 계획이 된다.</p>
+    <div class="formulas">
+      <div class="formula"><div class="eyebrow">첫 번째 숫자</div><div class="f">Life Gap = 월 필수생활비(A′) − 세후 지속가능 월 현금흐름(B)</div></div>
+      <div class="formula"><div class="eyebrow">두 번째 숫자</div><div class="f">L-BEP 달성률 = (B ÷ A′) × 100</div></div>
+      <div class="formula"><div class="eyebrow">보조 계기판</div><div class="f">바닥 현금흐름 충당률 = 확정성 높은 세후 월 현금흐름(D) ÷ A′ × 100</div></div>
+    </div>
+    <div class="callout" id="howto">
+      <b>처음이신가요? 3분이면 됩니다.</b>
+      <ul>
+        <li><b>1단계</b> 매달 나가는 돈을 적습니다. 정확하지 않아도 됩니다.</li>
+        <li><b>2단계</b> 내가 일하지 않아도 들어오는 돈을 적습니다. 0원이어도 괜찮습니다.</li>
+        <li><b>3단계</b> 진단 결과를 확인하고, 맨 아래 ‘오늘의 기록’을 복사해 가족과 나눕니다.</li>
+      </ul>
+      <p class="small" style="margin-top:6px">숫자는 이 기기의 브라우저에만 저장되며 어디로도 전송되지 않습니다. 책 속 김상철의 숫자로 먼저 연습해 보려면 아래 ‘김상철 예시 불러오기’를 누르십시오.</p>
+    </div>
+    <div class="btnrow">
+      <button class="btn sm" type="button" id="btnDemo">김상철 예시 불러오기</button>
+      <button class="btn sm" type="button" id="btnReset">모두 지우기</button>
+      <span class="toast" id="saveToast"></span>
+    </div>
+    <div class="confirm" id="resetConfirm" hidden>
+      <span>입력한 숫자를 모두 지울까요?</span>
+      <button class="btn sm danger" type="button" id="btnResetYes">지우기</button>
+      <button class="btn sm" type="button" id="btnResetNo">취소</button>
+    </div>
+  </header>
+
+  <nav class="stepnav" aria-label="단계">
+    <ul>
+      <li><a href="#step1"><b>1</b>월 비용</a></li>
+      <li><a href="#step2"><b>2</b>현금흐름</a></li>
+      <li><a href="#step3"><b>3</b>진단 결과</a></li>
+      <li><a href="#step4"><b>4</b>세 가지 시나리오</a></li>
+      <li><a href="#step5"><b>5</b>두 곡선 그리기</a></li>
+      <li><a href="#step6"><b>6</b>새는 돈 배분</a></li>
+      <li><a href="#step7"><b>7</b>여섯 봉투</a></li>
+      <li><a href="#summary"><b>✓</b>오늘의 기록</a></li>
+    </ul>
+  </nav>
+
+  <!-- STEP 1 -->
+  <section class="ws" id="step1">
+    <div class="ws-head">
+      <div class="tag"><b>STEP 1</b> 워크시트 ①·② · 비용곡선의 출발점</div>
+      <h2>매달 나가는 돈을 적으십시오</h2>
+      <p class="intro">왼쪽에는 지금 실제로 쓰는 월 지출을, 오른쪽에는 그중 소득이 줄어도 반드시 지켜야 할 <b>필수 금액</b>을 적습니다. 필수 금액을 비워두면 전액 필수로 계산합니다. 필수생활비는 최저생존비가 아니라, 건강과 기본적인 관계와 존엄을 유지하는 비용입니다.</p>
+    </div>
+    <div class="tbl-wrap">
+      <table class="tbl" id="costTable">
+        <thead><tr><th>항목</th><th class="right">월 지출액</th><th class="right">이 중 필수 금액</th></tr></thead>
+        <tbody></tbody>
+        <tfoot>
+          <tr class="total"><td class="lab">월 총지출 합계(A)</td><td class="right val" id="outA">0원</td><td class="right"><span class="small muted">조정 가능 비용 <span class="val" id="outAdj">0원</span></span></td></tr>
+          <tr class="total"><td class="lab">월 필수생활비 합계(A′)</td><td></td><td class="right val" id="outAp">0원</td></tr>
+        </tfoot>
+      </table>
+    </div>
+    <p class="note" style="margin-top:10px">* 보험은 단순 해지 대상이 아닙니다. 중복보장과 과잉보험료를 점검하되, 필요한 보장이 사라지지 않는지부터 확인합니다. 명절·병원비·연간결제처럼 불규칙한 비용은 12로 나누어 월 평균으로 넣으십시오.</p>
+  </section>
+
+  <!-- STEP 2 -->
+  <section class="ws" id="step2">
+    <div class="ws-head">
+      <div class="tag"><b>STEP 2</b> 워크시트 ①·⑫ · 자산소득곡선의 현재 높이</div>
+      <h2>내가 일하지 않아도 들어오는 돈을 적으십시오</h2>
+      <p class="intro">세금과 비용을 뺀 뒤 실제로 남고, 일회성이 아니라 반복되며, 내가 멈추어도 유지되는 돈만 적습니다. 위쪽 네 줄은 지급조건과 기간이 비교적 명확한 <b>바닥 현금흐름(D)</b>이고, 전체 합계가 L-BEP의 분자인 <b>세후 지속가능 월 현금흐름(B)</b>입니다. 현재 0원이어도 괜찮습니다. 중요한 건 0을 외면하지 않는 것입니다.</p>
+    </div>
+    <div class="tbl-wrap">
+      <table class="tbl" id="incomeTable">
+        <thead><tr><th>소득 통로</th><th class="right">세후 월 금액</th></tr></thead>
+        <tbody></tbody>
+        <tfoot>
+          <tr class="total"><td class="lab">바닥 현금흐름 합계(D)<span class="sub">확정성이 상대적으로 높은 세후 월 현금흐름</span></td><td class="right val" id="outD">0원</td></tr>
+          <tr class="total"><td class="lab">세후 지속가능 월 현금흐름 합계(B)</td><td class="right val" id="outB">0원</td></tr>
+        </tfoot>
+      </table>
+    </div>
+    <div class="wd-help" id="wdHelp">
+      <div class="small" style="font-weight:600;margin-bottom:6px">보수적 지속가능 인출액 계산 도우미</div>
+      <div class="fields">
+        <div class="field"><span class="lab">은퇴자산 총액</span><span class="money"><input type="number" inputmode="decimal" min="0" id="wdAssets" data-bind="wd.assets" placeholder="0"><span class="unit">만 원</span></span></div>
+        <div class="field"><span class="lab">연 인출률</span><select class="text" id="wdRate" data-bind="wd.rate"><option value="3.5">3.5% (보수적)</option><option value="4">4% (참고 기준)</option><option value="3">3%</option><option value="2.5">2.5%</option></select></div>
+        <div class="field"><span class="lab">세금·비용 반영</span><span class="money sm"><input type="number" inputmode="decimal" min="0" max="100" id="wdTax" data-bind="wd.tax" placeholder="15"><span class="unit">%</span></span></div>
+        <div class="field"><span class="lab">계산된 월 인출액</span><span class="val" id="wdOut">0원</span></div>
+        <button class="btn sm" type="button" id="wdApply">이 금액을 위 칸에 넣기</button>
+      </div>
+      <p class="note" style="margin-top:8px">4%와 3.5%는 보장수익률이 아니라 참고속도입니다. 은퇴자산 × 인출률 × (1 − 세금·비용) ÷ 12로 계산하며, 순서위험과 장수위험을 함께 검토해야 합니다.</p>
+    </div>
+    <div class="split two" style="margin-top:14px">
+      <div class="callout">
+        <b>분자(B)에 넣지 않는 돈</b>
+        <ul>
+          <li>투자원금, 아직 실현되지 않은 평가이익</li>
+          <li>우연히 발생한 일회성 매매차익, 단발성 배당·보험금</li>
+          <li>내가 매일 직접 일해야만 발생하는 월급·사업·강의·자문소득(1층 능동소득)</li>
+          <li>건강·기술·경험 같은 인적자본(분자가 아니라 분자를 만드는 기반)</li>
+        </ul>
+      </div>
+      <div class="callout">
+        <b>별도로 기록할 능동소득</b>
+        <p class="small" style="margin:6px 0 8px">월급·사업소득처럼 내가 움직여야 생기는 돈입니다. L-BEP 분자에는 넣지 않지만 월 가계수지 계산에 사용합니다.</p>
+        <label class="inline">현재 월 세후 능동소득 <span class="money"><input type="number" inputmode="decimal" min="0" id="activeIncome" data-bind="active" placeholder="0"><span class="unit">만 원</span></span></label>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 3 -->
+  <section class="ws" id="step3">
+    <div class="ws-head">
+      <div class="tag"><b>STEP 3</b> 워크시트 ② STEP 6 · 진단 결과</div>
+      <h2>나의 Life Gap과 L-BEP 달성률</h2>
+    </div>
+    <div class="hero-stat">
+      <div>
+        <div class="eyebrow">L-BEP 달성률 (B ÷ A′ × 100)</div>
+        <div class="big" id="outPct">0<small>%</small></div>
+        <div style="margin-top:8px"><span class="pill" id="outZonePill"><span class="dot"></span><span id="outZoneName">노동소득 의존 구간</span></span></div>
+      </div>
+      <div>
+        <div class="meter" aria-hidden="true">
+          <div class="seg z0"></div><div class="seg z1"></div><div class="seg z2"></div><div class="seg z3"></div><div class="seg z4"></div>
+          <div class="fill" id="meterFill" style="width:0%"></div>
+          <div class="mark" id="meterMark" style="left:0%"></div>
+        </div>
+        <div class="meter-ticks"><span style="left:0">0%</span><span style="left:25%">30%</span><span style="left:58.3%">70%</span><span style="left:83.3%">100%</span><span style="left:100%">120%</span></div>
+      </div>
+    </div>
+    <div class="tiles" style="margin-top:16px">
+      <div class="tile"><div class="k">월 필수생활비(A′)</div><div class="v" id="tAp">0원</div><div class="d" id="tA">월 총지출(A) 0원</div></div>
+      <div class="tile"><div class="k">세후 지속가능 월 현금흐름(B)</div><div class="v" id="tB">0원</div><div class="d" id="tD">바닥 현금흐름(D) 0원</div></div>
+      <div class="tile"><div class="k">Life Gap(A′ − B)</div><div class="v" id="tGap">0원</div><div class="d" id="tGapMean">아직 메워야 할 월 부족액</div></div>
+      <div class="tile"><div class="k">바닥 현금흐름 충당률(D ÷ A′)</div><div class="v" id="tFloor">0%</div><div class="d">공적·계약형 연금이 채우는 비율</div></div>
+      <div class="tile"><div class="k">월 가계수지</div><div class="v" id="tBal">—</div><div class="d" id="tBalD">능동소득 + B − 월 총지출</div></div>
+    </div>
+    <div class="split two" style="margin-top:16px">
+      <div class="zone-card">
+        <div class="eyebrow">현재 구간</div>
+        <h3 id="zcName">노동소득 의존 구간</h3>
+        <div class="row"><span class="k">현재 상태</span><span id="zcState"></span></div>
+        <div class="row"><span class="k">가장 먼저 할 일</span><span id="zcTodo"></span></div>
+      </div>
+      <div class="zone-card">
+        <div class="eyebrow">비상 활주로</div>
+        <label class="inline">현재 비상자금 <span class="money"><input type="number" inputmode="decimal" min="0" id="emergency" data-bind="emergency" placeholder="0"><span class="unit">만 원</span></span></label>
+        <div class="row"><span class="k">활주로</span><span><b id="rwMonths">0.0개월분</b> <span class="muted small">(비상자금 ÷ 월 필수생활비)</span></span></div>
+        <div class="row"><span class="k">출발 기준</span><span>필수생활비 6개월분 <b id="rwTarget">0원</b></span></div>
+        <div class="row"><span class="k">부족액</span><span id="rwShort">0원</span></div>
+        <p class="note">비상자금은 실직·질병·사고처럼 예상 밖의 충격을 위한 돈입니다. 투자금, 은퇴 생활 활주로와 같은 돈을 두 번 세지 마십시오.</p>
+      </div>
+    </div>
+    <details class="help" style="margin-top:14px">
+      <summary>L-BEP의 다섯 구간 보기</summary>
+      <div class="body">
+        <div class="tbl-wrap">
+        <table class="zones" id="zoneTable">
+          <thead><tr><th>달성률</th><th>구간</th><th>현재 상태</th><th>가장 먼저 해야 할 일</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        </div>
+        <p class="note" style="margin-top:8px">L-BEP 100%는 모든 위험이 사라진다는 뜻이 아닙니다. 건강·부채·가족책임·현금흐름 변동성이 크다면 110~120% 이상의 안전 여유를 개인 목표로 잡을 수 있습니다. 비용과 현금흐름이 변하면 다시 계산하십시오.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- STEP 4 -->
+  <section class="ws" id="step4">
+    <div class="ws-head">
+      <div class="tag"><b>STEP 4</b> 워크시트 ② STEP 7 · 미래 시점의 L-BEP</div>
+      <h2>세 가지 미래 시나리오</h2>
+      <p class="intro">L-BEP 도달 시점은 하나의 숫자로 단정할 수 없습니다. 보수적·기준·낙관적 시나리오로 범위를 계산합니다. 미래 생활비에는 물가상승을 반영합니다. <span class="num">미래생활비 = 현재 필수생활비 × (1 + 물가상승률)<sup>년수</sup></span>. 각 시나리오의 현금흐름(B)에는 그 시점에 세후로 반복해서 들어올 것으로 보수적으로 예상하는 금액을 적으십시오. 비워두면 현재 B를 사용합니다.</p>
+    </div>
+    <div class="fields" style="margin-bottom:14px">
+      <div class="field"><span class="lab">현재 나이</span><span class="money sm"><input type="number" inputmode="numeric" min="0" max="110" id="age" data-bind="age" placeholder="53"><span class="unit">세</span></span></div>
+      <div class="field"><span class="lab">목표 시점 나이</span><span class="money sm"><input type="number" inputmode="numeric" min="0" max="120" id="targetAge" data-bind="targetAge" placeholder="65"><span class="unit">세</span></span></div>
+      <div class="field"><span class="lab">남은 기간</span><span class="val" id="outYears">12년</span></div>
+    </div>
+    <div class="scen" id="scenCards"></div>
+    <div class="callout" style="margin-top:14px">L-BEP 계획은 <b>기준 시나리오를 중심</b>으로 세우고, 생존 가능성은 <b>보수적 시나리오로 검증</b>합니다. 낙관적 결과가 나오더라도 그 여유를 미리 소비해서는 안 됩니다. 희망은 낙관적으로 품되, 계획은 보수적으로 세우십시오.</div>
+  </section>
+
+  <!-- STEP 5 -->
+  <section class="ws" id="step5">
+    <div class="ws-head">
+      <div class="tag"><b>STEP 5</b> 워크시트 ② STEP 2~5 · 두 곡선 차트</div>
+      <h2>나의 두 곡선 그리기</h2>
+      <p class="intro">시기별로 예상되는 <b>월 필수지출(비용곡선)</b>과 <b>세후 지속가능 월 현금흐름(자산소득곡선)</b>을 적습니다. 비워두면 비용은 기준 시나리오 물가상승률로, 현금흐름은 현재 B로 자동 채웁니다. 정확한 나이를 맞히는 것이 목적이 아닙니다. 두 곡선이 어디서 가까워지는지 보는 것이 목적입니다.</p>
+    </div>
+    <div class="tbl-wrap">
+      <table class="tbl" id="curveTable">
+        <thead><tr><th>시점</th><th>나의 나이</th><th class="right">예상 월 필수지출</th><th class="right">예상 세후 지속가능 현금흐름</th><th>주요 비용 메모</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="chart-box" style="margin-top:14px">
+      <div class="legend" aria-hidden="true">
+        <span class="key"><span class="sw cost"></span><span class="mk"></span>비용곡선 (월 필수지출)</span>
+        <span class="key"><span class="sw income"></span><span class="mk income"></span>자산소득곡선 (세후 지속가능 현금흐름)</span>
+      </div>
+      <div id="chartHost"></div>
+      <div class="tip" id="chartTip"></div>
+    </div>
+    <p class="cross-note" id="crossNote"></p>
+  </section>
+
+  <!-- STEP 6 -->
+  <section class="ws" id="step6">
+    <div class="ws-head">
+      <div class="tag"><b>STEP 6</b> 워크시트 ④ STEP 5~6 · 새는 돈의 다음 역할</div>
+      <h2>절감액과 실제 배분 가능액을 구분하십시오</h2>
+      <p class="intro">새는 돈을 막아 생긴 절감액이 모두 새 투자금이 되는 것은 아닙니다. 기존 월 적자가 있다면 먼저 그 적자를 메워야 남은 돈에 새로운 역할을 줄 수 있습니다. 절감액이 적자보다 작으면 신규 배분은 시작하지 않습니다.</p>
+    </div>
+    <div class="fields">
+      <div class="field"><span class="lab">월 절감액(a)</span><span class="money"><input type="number" inputmode="decimal" min="0" id="leakSave" data-bind="leak.save" placeholder="0"><span class="unit">만 원</span></span></div>
+      <div class="field"><span class="lab">기존 월 적자(b)</span><span class="money"><input type="number" inputmode="decimal" min="0" id="leakDeficit" data-bind="leak.deficit" placeholder="0"><span class="unit">만 원</span></span><span class="small muted" id="leakHint">흑자였다면 0</span></div>
+    </div>
+    <div class="tiles" style="margin-top:14px">
+      <div class="tile"><div class="k">실제 신규 배분 가능액(a − b)</div><div class="v" id="leakAlloc">0원</div></div>
+      <div class="tile"><div class="k">절감 후에도 남은 월 적자</div><div class="v" id="leakRemain">0원</div></div>
+    </div>
+    <h3 style="margin-top:18px">막은 돈의 다음 역할</h3>
+    <p class="note" style="margin:4px 0 10px">우선순위는 ① 기존 적자 해소 → ② 비상 봉투 → ③ 미래 봉투 → ④ 자산 봉투 → ⑤ 관계 봉투입니다. 합계는 실제 신규 배분 가능액을 초과할 수 없습니다. 비상자금이 부족하거나 고금리 부채가 있다면 투자보다 그 문제를 먼저 해결하십시오.</p>
+    <div class="tbl-wrap">
+      <table class="tbl" id="allocTable">
+        <thead><tr><th>우선순위</th><th>다음 역할</th><th class="right">월 자동이체액</th></tr></thead>
+        <tbody></tbody>
+        <tfoot><tr class="total"><td class="lab" colspan="2">합계</td><td class="right val" id="allocSum">0원</td></tr></tfoot>
+      </table>
+    </div>
+    <p id="allocMsg" class="note" style="margin-top:8px"></p>
+    <p class="note" style="margin-top:8px">자산 봉투에 넣는 돈은 아직 자산소득이 아닙니다. 그 돈이 세후 이자·배당·연금처럼 반복 가능한 현금흐름을 만들기 시작할 때 비로소 L-BEP의 분자(B)에 들어갑니다.</p>
+  </section>
+
+  <!-- STEP 7 -->
+  <section class="ws" id="step7">
+    <div class="ws-head">
+      <div class="tag"><b>STEP 7</b> 워크시트 ③ STEP 1~2 · 돈에 역할 주기</div>
+      <h2>여섯 봉투 점검</h2>
+      <p class="intro">반복되는 월 세후 수입을 여섯 가지 역할로 나눕니다. 봉투는 통장 이름이 아니라 돈의 최종 목적으로 분류합니다. 합계가 월수입을 초과한다고 실패한 게 아닙니다. 현재 가계가 적자이거나 한 봉투가 다른 봉투를 침범한다는 신호입니다.</p>
+    </div>
+    <label class="inline" style="margin-bottom:12px">반복되는 월 세후 수입 합계 <span class="money"><input type="number" inputmode="decimal" min="0" id="envIncome" data-bind="env.income" placeholder="0"><span class="unit">만 원</span></span><span class="small muted">퇴직금·일시 성과급·일회성 매매차익은 제외</span></label>
+    <div class="tbl-wrap">
+      <table class="tbl" id="envTable">
+        <thead><tr><th>봉투</th><th>핵심 역할</th><th class="right">현재 월 금액</th></tr></thead>
+        <tbody></tbody>
+        <tfoot>
+          <tr class="total"><td class="lab" colspan="2">여섯 봉투 합계</td><td class="right val" id="envSum">0원</td></tr>
+          <tr class="total"><td class="lab" colspan="2">월수입과의 차이</td><td class="right val" id="envDiff">0원</td></tr>
+        </tfoot>
+      </table>
+    </div>
+    <p id="envMsg" class="note" style="margin-top:8px"></p>
+    <p class="note" style="margin-top:8px">자동이체의 첫 순서: ① 필수생활비와 계약상 의무비용 확보 → ② 신규 연체와 고금리 부채 증가 중단 → ③ 최소한의 출발 비상금 → ④ 월 현금수지 0 이상 전환 → ⑤ 자산 봉투 자동이체 시작.</p>
+  </section>
+
+  <!-- SUMMARY -->
+  <section class="ws" id="summary">
+    <div class="ws-head">
+      <div class="tag"><b>오늘의 기록</b> 기준일 <span id="todayStr"></span></div>
+      <h2>나의 L-BEP 한 장 요약</h2>
+      <p class="intro">책의 워크시트 ‘오늘의 기록’ 형식입니다. 복사해서 가족과 공유하거나 가족 정보함에 남기십시오. 모든 숫자에는 기준일을 함께 적습니다.</p>
+    </div>
+    <div class="sumbox" id="sumBox"></div>
+    <div class="btnrow" style="margin-top:12px">
+      <button class="btn primary" type="button" id="btnCopy">요약 복사하기</button>
+      <span class="toast" id="copyToast"></span>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <p>이 계산기는 안유화 「부의 곡선」의 L-BEP 워크시트 ①·②·③·④·⑫의 계산 부분을 그대로 옮긴 것입니다. 입력값은 이 기기의 브라우저에만 저장되며 다른 곳으로 전송되지 않습니다. 금액 단위는 만 원입니다. 결과는 투자 권유나 재무 자문이 아니며, 세금·연금·보험 등 개별 사항은 전문가와 확인하십시오.</p>
+    <p style="margin-top:6px">부의 곡선은 언제나 1밀리미터에서 다시 시작할 수 있습니다.</p>
+  </footer>
+</div>
+
+<div class="dash" aria-label="계기판">
+  <div class="in">
+    <div class="m"><div class="k">월 필수생활비 A′</div><div class="v" id="dAp">0원</div></div>
+    <div class="m"><div class="k">지속가능 현금흐름 B</div><div class="v" id="dB">0원</div></div>
+    <div class="m"><div class="k">Life Gap</div><div class="v" id="dGap">0원</div></div>
+    <div class="m"><div class="k">L-BEP 달성률</div><div class="v" id="dPct">0%</div></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  const STORE_KEY = 'lbep-calc-v1';
+
+  const COST_ITEMS = [
+    ['주거비','대출 이자·월세·관리비 등'],
+    ['생활비','식비·공과금·통신비 등'],
+    ['보험료','보장 점검 후 판단'],
+    ['교통·차량비','대중교통·할부·유지비'],
+    ['자녀교육·용돈',''],
+    ['부모님 지원',''],
+    ['부채상환','대출 원리금·할부'],
+    ['구독·취미·기타','']
+  ];
+  const INCOME_ITEMS = [
+    {key:'np', lab:'국민연금·공적연금', sub:'예상 수령액(세후)', floor:true},
+    {key:'rp', lab:'퇴직연금', sub:'연금 형태 수령 시 월액', floor:true},
+    {key:'pp', lab:'개인연금', sub:'', floor:true},
+    {key:'contract', lab:'기타 계약형 반복소득', sub:'지급조건·기간이 명확한 것', floor:true},
+    {key:'interest', lab:'세후 이자·배당', sub:'세금 차감 후 장기간 반복 가능한 평균'},
+    {key:'rent', lab:'순임대소득', sub:'임대수입에서 세금·공실·관리·수선비 제외'},
+    {key:'withdraw', lab:'보수적 지속가능 인출액', sub:'장기간 유지할 수 있도록 설계된 자산 인출액', helper:true},
+    {key:'auto', lab:'자동화 사업·AI 대리소득·라이선스', sub:'노동의존도가 낮고 반복성과 권리 소유가 확인된 금액'},
+    {key:'other', lab:'기타 자산소득', sub:'본인 노력이 크게 들어가지 않은 다른 자산소득'}
+  ];
+  const ZONES = [
+    {name:'노동소득 의존 구간', en:'Starting Zone', range:'0%', tone:'neutral',
+     state:'출발구간으로서 필수생활비 대부분을 노동소득에 의존한다. 지속가능 현금흐름이 아직 없다. 노동소득이 멈추면 소득도 함께 멈춘다.',
+     todo:'비용구조·비상자금·소득통로부터 점검한다. Life Gap을 확인하고 비상자금과 두 번째 소득선을 준비한다.'},
+    {name:'자산소득 점화 구간', en:'Survival Zone', range:'1~29%', tone:'serious',
+     state:'돈이 처음 나를 위해 일하기 시작했지만 생활비 대부분은 노동소득에 의존한다.',
+     todo:'월 필수생활비를 확정하고 첫 번째 자산소득선을 만든다. 비상자금을 확보하고 자산소득의 반복성을 만든다.'},
+    {name:'완충 구간', en:'Transition Zone', range:'30~69%', tone:'warn',
+     state:'일부 생활비를 연금과 자산이 감당하며 위기 완충력이 생긴다.',
+     todo:'자동저축과 자산소득 확대를 병행한다. 소득원을 분산하고 비용구조와 현금흐름을 안정화한다.'},
+    {name:'임계 접근 구간', en:'Threshold Zone', range:'70~99%', tone:'accent',
+     state:'L-BEP가 가까워지고 노동과 삶에 대한 선택권이 커진다.',
+     todo:'무리한 고수익보다 마지막 Life Gap을 안정적으로 줄인다.'},
+    {name:'L-BEP 도달 구간', en:'Freedom Zone', range:'100% 이상', tone:'good',
+     state:'두 곡선이 처음 만난 상태. 세후 지속가능 현금흐름이 월 필수생활비를 감당한다.',
+     todo:'현금흐름의 지속성과 변동성을 점검하고, 의료·간병·장수위험과 가족승계까지 확장한다. 필요하면 110~120% 안전 여유를 목표로 잡는다.'}
+  ];
+  const SCEN = [
+    {key:'cons', name:'보수적 시나리오', desc:'상황이 예상보다 좋지 않을 때. 자산수익과 배당은 낮게, 임대소득은 공실·수선비를 충분히 반영.', infl:3.5},
+    {key:'base', name:'기준 시나리오', desc:'대체로 예상한 흐름이 이어질 때. 현재의 저축과 연금납입을 지속, 자산수익은 장기 평균보다 다소 보수적으로.', infl:2.5},
+    {key:'opt', name:'낙관적 시나리오', desc:'계획이 예상보다 잘 실행될 때. 자동저축과 장기투자를 꾸준히 유지, 대출 상환과 고정비 절감이 계획대로.', infl:1.8}
+  ];
+  const CURVE_POINTS = [
+    {years:0, lab:'현재', memo:'주거, 생활비, 보험료, 교육비'},
+    {years:10, lab:'10년 후', memo:'자녀 독립, 부모 간병 가능성, 대출 변화'},
+    {years:20, lab:'20년 후', memo:'은퇴 생활비, 의료비 증가'},
+    {years:30, lab:'30년 후', memo:'장기요양, 간병, 마지막 비용 가능성'},
+    {years:40, lab:'그 이후', memo:'장수위험·배우자 생활비, 장례비용'}
+  ];
+  const ALLOC = [
+    {key:'deficit', n:'1', lab:'기존 적자 해소', sub:'월 현금흐름 정상화'},
+    {key:'emergency', n:'2', lab:'비상 봉투', sub:'실직·질병·예상 밖의 충격 대비'},
+    {key:'future', n:'3', lab:'미래 봉투', sub:'교육·재취업·AI 역량과 자녀의 미래'},
+    {key:'asset', n:'4', lab:'자산 봉투', sub:'투자·연금·장기자산의 기반'},
+    {key:'relation', n:'5', lab:'관계 봉투', sub:'부모님·가족행사·돌봄 비용'}
+  ];
+  const ENV = [
+    {key:'living', lab:'① 생활 봉투', role:'식비·생필품·기본 교통비 등 오늘의 생활'},
+    {key:'fixed', lab:'② 고정비 봉투', role:'대출·관리비·보험료·통신비 등 계약상 의무'},
+    {key:'emergency', lab:'③ 비상 봉투', role:'실직·질병·사고가 왔을 때 시간을 사는 돈'},
+    {key:'future', lab:'④ 미래 봉투', role:'자녀·교육·재취업·자기계발·AI 역량'},
+    {key:'relation', lab:'⑤ 관계 봉투', role:'부모님·경조사·가족행사·마지막 비용'},
+    {key:'asset', lab:'⑥ 자산 봉투', role:'투자·연금·장기자산과 미래 현금흐름의 씨앗'}
+  ];
+
+  function blankState(){
+    return {
+      cost: COST_ITEMS.map(()=>({total:null, ess:null})),
+      income: {np:null,rp:null,pp:null,contract:null,interest:null,rent:null,withdraw:null,auto:null,other:null},
+      active: null,
+      wd: {assets:null, rate:'3.5', tax:null},
+      emergency: null,
+      age: null, targetAge: null,
+      scen: {cons:{infl:null,B:null,action:''}, base:{infl:null,B:null,action:''}, opt:{infl:null,B:null,action:''}},
+      curve: CURVE_POINTS.map(()=>({cost:null, income:null, memo:''})),
+      leak: {save:null, deficit:null, alloc:{deficit:null,emergency:null,future:null,asset:null,relation:null}},
+      env: {income:null, living:null, fixed:null, emergency:null, future:null, relation:null, asset:null}
+    };
+  }
+  function demoState(){
+    const s = blankState();
+    // 김상철: 월 총지출 635만 원 / 월 필수생활비 380만 원 (항목별 필수 금액은 예시로 나눈 값)
+    const totals = [45,210,78,52,40,30,180,0];
+    const ess    = [45,150,40,25,20,20,80,0];
+    s.cost = totals.map((t,i)=>({total:t, ess:ess[i]}));
+    s.active = 620;
+    s.emergency = 380;
+    s.age = 53; s.targetAge = 65;
+    s.scen.cons.B = 370; s.scen.base.B = 480; s.scen.opt.B = 550;
+    s.scen.cons.action = '연금 수령 시기와 고정비를 다시 점검하고, 생활 활주로를 먼저 확보한다.';
+    s.scen.base.action = '자산 봉투 자동이체를 유지하고 남은 31만 원의 갭을 줄일 소득원을 하나 더 만든다.';
+    s.scen.opt.action = '여유 79만 원을 미리 소비하지 않고 돌봄 예비금과 안전 여유(110~120%)로 돌린다.';
+    s.leak.save = 35; s.leak.deficit = 15;
+    s.leak.alloc.emergency = 15; s.leak.alloc.future = 5;
+    s.env.income = 620; s.env.living = 215; s.env.fixed = 355; s.env.emergency = 15; s.env.future = 5; s.env.relation = 30; s.env.asset = 0;
+    return s;
+  }
+
+  let state = blankState();
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (raw) { const parsed = JSON.parse(raw); state = mergeState(blankState(), parsed); }
+  } catch (e) { /* storage unavailable: run without it */ }
+
+  function mergeState(base, over){
+    if (!over || typeof over !== 'object') return base;
+    for (const k of Object.keys(base)){
+      if (!(k in over)) continue;
+      const b = base[k], o = over[k];
+      if (Array.isArray(b)) { base[k] = b.map((item,i)=> (o && o[i] && typeof item==='object') ? Object.assign({}, item, o[i]) : (o && o[i]!==undefined ? o[i] : item)); }
+      else if (b && typeof b === 'object') base[k] = mergeState(b, o);
+      else base[k] = o;
+    }
+    return base;
+  }
+
+  // ---------- helpers ----------
+  const $ = (id)=>document.getElementById(id);
+  const num = (v)=> (v===null||v===undefined||v===''||isNaN(Number(v))) ? null : Number(v);
+  const n0 = (v)=> num(v) ?? 0;
+  function fmtMan(v, opt){
+    if (v===null || v===undefined || isNaN(v)) return '—';
+    const neg = v < 0; let a = Math.abs(v);
+    a = Math.round(a*10)/10;
+    if (a === 0) return '0원';
+    let s;
+    if (a >= 10000){
+      const eok = Math.floor(a/10000); const man = Math.round((a - eok*10000)*10)/10;
+      s = man > 0 ? eok.toLocaleString('ko-KR') + '억 ' + man.toLocaleString('ko-KR') + '만 원' : eok.toLocaleString('ko-KR') + '억 원';
+    } else s = a.toLocaleString('ko-KR') + '만 원';
+    if (opt && opt.sign && !neg) s = '+' + s;
+    return (neg ? '−' : '') + s;
+  }
+  function fmtPct(p){
+    if (p===null || p===undefined || isNaN(p) || !isFinite(p)) return '—';
+    const r = p >= 10 ? Math.round(p) : Math.round(p*10)/10;
+    return r.toLocaleString('ko-KR') + '%';
+  }
+  function zoneOf(Ap, B){
+    if (!(Ap > 0)) return null;
+    if (!(B > 0)) return 0;
+    const p = B/Ap*100;
+    if (p < 30) return 1; if (p < 70) return 2; if (p < 100) return 3; return 4;
+  }
+  function getPath(obj, path){ return path.split('.').reduce((o,k)=> (o==null?undefined:o[k]), obj); }
+  function setPath(obj, path, val){
+    const ks = path.split('.'); let o = obj;
+    for (let i=0;i<ks.length-1;i++){ if (o[ks[i]]==null) o[ks[i]] = {}; o = o[ks[i]]; }
+    o[ks[ks.length-1]] = val;
+  }
+  function moneyInput(bind, id, extra){
+    return '<span class="money' + (extra&&extra.sm?' sm':'') + '"><input type="number" inputmode="decimal" min="0" id="'+id+'" data-bind="'+bind+'" placeholder="'+(extra&&extra.ph!==undefined?extra.ph:'0')+'"><span class="unit">만 원</span></span>';
+  }
+
+  // ---------- build input tables ----------
+  function buildInputs(){
+    let h = '';
+    COST_ITEMS.forEach((it,i)=>{
+      h += '<tr><td class="lab">'+it[0]+(it[1]?'<span class="sub">'+it[1]+'</span>':'')+'</td>'+
+           '<td class="right">'+moneyInput('cost.'+i+'.total','cost_t_'+i)+'</td>'+
+           '<td class="right">'+moneyInput('cost.'+i+'.ess','cost_e_'+i,{ph:'전액'})+'</td></tr>';
+    });
+    $('costTable').querySelector('tbody').innerHTML = h;
+
+    h = '<tr class="group"><td colspan="2">바닥 현금흐름(D) — 확정성이 상대적으로 높은 현금흐름</td></tr>';
+    INCOME_ITEMS.forEach((it,i)=>{
+      if (i===4) h += '<tr class="group"><td colspan="2">그 밖의 세후 지속가능 현금흐름 — 보수적으로 계산</td></tr>';
+      h += '<tr><td class="lab">'+it.lab+(it.sub?'<span class="sub">'+it.sub+'</span>':'')+
+           (it.helper?'<span class="sub"><button class="btn sm" type="button" id="wdToggle" style="margin-top:4px">계산 도우미 열기</button></span>':'')+'</td>'+
+           '<td class="right">'+moneyInput('income.'+it.key,'inc_'+it.key)+'</td></tr>';
+    });
+    $('incomeTable').querySelector('tbody').innerHTML = h;
+
+    h = '';
+    SCEN.forEach(s=>{
+      h += '<div class="scard '+s.key+'"><div><h3>'+s.name+'</h3><p class="desc">'+s.desc+'</p></div>'+
+        '<div class="field"><span class="lab">연평균 물가상승률</span><span class="money sm"><input type="number" inputmode="decimal" min="0" max="30" step="0.1" id="sc_infl_'+s.key+'" data-bind="scen.'+s.key+'.infl" placeholder="'+s.infl+'"><span class="unit">%</span></span></div>'+
+        '<div class="field"><span class="lab">목표시점 세후 지속가능 월 현금흐름(B)</span>'+moneyInput('scen.'+s.key+'.B','sc_B_'+s.key,{ph:'0'})+'</div>'+
+        '<div class="out">'+
+          '<div class="r"><span class="k">물가조정 후 월 필수생활비(A′)</span><span class="v" id="sc_Ap_'+s.key+'">—</span></div>'+
+          '<div class="calc" id="sc_calc_'+s.key+'"></div>'+
+          '<div class="r"><span class="k">Life Gap(A′ − B)</span><span class="v" id="sc_gap_'+s.key+'">—</span></div>'+
+          '<div class="r big"><span class="k">L-BEP 달성률</span><span class="v" id="sc_pct_'+s.key+'">—</span></div>'+
+          '<div class="r"><span class="k">월 갭 또는 여유</span><span class="v" id="sc_mean_'+s.key+'">—</span></div>'+
+          '<div class="r"><span class="k">예상 구간</span><span id="sc_zone_'+s.key+'"><span class="pill"><span class="dot"></span><span>—</span></span></span></div>'+
+        '</div>'+
+        '<div class="field"><span class="lab">이 상황이 현실이 되면 내가 실행할 행동</span><textarea class="text" id="sc_act_'+s.key+'" data-bind="scen.'+s.key+'.action" placeholder="한 가지 행동을 적으십시오"></textarea></div>'+
+        '</div>';
+    });
+    $('scenCards').innerHTML = h;
+
+    h = '';
+    CURVE_POINTS.forEach((p,i)=>{
+      h += '<tr><td class="lab">'+p.lab+'</td><td class="num" id="cv_age_'+i+'">—</td>'+
+           '<td class="right">'+moneyInput('curve.'+i+'.cost','cv_c_'+i,{ph:'자동'})+'</td>'+
+           '<td class="right">'+moneyInput('curve.'+i+'.income','cv_i_'+i,{ph:'자동'})+'</td>'+
+           '<td><input class="text" type="text" id="cv_m_'+i+'" data-bind="curve.'+i+'.memo" placeholder="'+p.memo+'" style="min-width:180px"></td></tr>';
+    });
+    $('curveTable').querySelector('tbody').innerHTML = h;
+
+    h = '';
+    ALLOC.forEach(a=>{
+      h += '<tr><td class="num" style="font-weight:600">'+a.n+'</td><td class="lab">'+a.lab+'<span class="sub">'+a.sub+'</span></td><td class="right">'+moneyInput('leak.alloc.'+a.key,'al_'+a.key)+'</td></tr>';
+    });
+    $('allocTable').querySelector('tbody').innerHTML = h;
+
+    h = '';
+    ENV.forEach(e=>{
+      h += '<tr><td class="lab">'+e.lab+'</td><td class="small" style="color:var(--ink-2)">'+e.role+'</td><td class="right">'+moneyInput('env.'+e.key,'env_'+e.key)+'</td></tr>';
+    });
+    $('envTable').querySelector('tbody').innerHTML = h;
+
+    h = '';
+    ZONES.forEach((z,i)=>{ h += '<tr id="zrow_'+i+'"><td class="num">'+z.range+'</td><td class="z">'+z.name+'<br><span class="small muted" style="font-weight:400">('+z.en+')</span></td><td>'+z.state+'</td><td>'+z.todo+'</td></tr>'; });
+    $('zoneTable').querySelector('tbody').innerHTML = h;
+  }
+
+  function fillInputsFromState(){
+    document.querySelectorAll('[data-bind]').forEach(el=>{
+      const v = getPath(state, el.dataset.bind);
+      if (el.tagName === 'SELECT') el.value = (v==null ? '3.5' : String(v));
+      else el.value = (v==null ? '' : v);
+    });
+  }
+
+  // ---------- compute ----------
+  function compute(){
+    const c = {};
+    c.A = 0; c.Ap = 0;
+    state.cost.forEach(r=>{
+      const t = n0(r.total); const e = num(r.ess);
+      c.A += t;
+      c.Ap += (e==null) ? t : Math.min(e, t);
+    });
+    const inc = state.income;
+    c.D = n0(inc.np)+n0(inc.rp)+n0(inc.pp)+n0(inc.contract);
+    c.B = c.D + n0(inc.interest)+n0(inc.rent)+n0(inc.withdraw)+n0(inc.auto)+n0(inc.other);
+    c.gap = c.Ap - c.B;
+    c.pct = c.Ap > 0 ? c.B/c.Ap*100 : null;
+    c.floorPct = c.Ap > 0 ? c.D/c.Ap*100 : null;
+    c.zone = zoneOf(c.Ap, c.B);
+    c.active = num(state.active);
+    c.balance = (c.active!=null || c.B>0 || c.A>0) ? (n0(c.active) + c.B - c.A) : null;
+    c.emergency = n0(state.emergency);
+    c.rwMonths = c.Ap > 0 ? c.emergency / c.Ap : null;
+    c.rwTarget = c.Ap * 6;
+    c.rwShort = Math.max(0, c.rwTarget - c.emergency);
+    // withdrawal helper
+    const wa = n0(state.wd.assets), wr = Number(state.wd.rate||3.5), wt = num(state.wd.tax);
+    c.wdMonthly = wa * (wr/100) * (1 - (wt==null?15:wt)/100) / 12;
+    // scenarios
+    c.age = num(state.age) ?? 53; c.targetAge = num(state.targetAge) ?? 65;
+    c.years = Math.max(0, c.targetAge - c.age);
+    c.scen = {};
+    SCEN.forEach(s=>{
+      const st = state.scen[s.key];
+      const infl = num(st.infl) ?? s.infl;
+      const factor = Math.pow(1 + infl/100, c.years);
+      const Ap = c.Ap * factor;
+      const B = num(st.B) ?? c.B;
+      c.scen[s.key] = {infl, factor, Ap, B, gap: Ap - B, pct: Ap > 0 ? B/Ap*100 : null, zone: zoneOf(Ap, B)};
+    });
+    // curves
+    const baseInfl = c.scen.base.infl;
+    c.curve = CURVE_POINTS.map((p,i)=>{
+      const st = state.curve[i];
+      const autoCost = c.Ap * Math.pow(1 + baseInfl/100, p.years);
+      const cost = num(st.cost) ?? autoCost;
+      const income = num(st.income) ?? c.B;
+      return {years:p.years, age: c.age + p.years, cost, income, autoCost, autoIncome: c.B, isAutoCost: num(st.cost)==null, isAutoIncome: num(st.income)==null};
+    });
+    c.cross = findCross(c.curve);
+    // leak
+    const save = n0(state.leak.save);
+    const defAuto = c.balance!=null ? Math.max(0, -c.balance) : 0;
+    const deficit = num(state.leak.deficit) ?? defAuto;
+    c.leak = {save, deficit, defAuto, alloc: Math.max(0, save - deficit), remain: Math.max(0, deficit - save)};
+    c.allocSum = ALLOC.reduce((a,x)=> a + n0(state.leak.alloc[x.key]), 0);
+    // env
+    c.envSum = ENV.reduce((a,x)=> a + n0(state.env[x.key]), 0);
+    c.envIncome = num(state.env.income);
+    c.envDiff = c.envIncome!=null ? c.envIncome - c.envSum : null;
+    return c;
+  }
+  function findCross(pts){
+    if (!pts.length) return null;
+    if (pts[0].income >= pts[0].cost && pts[0].cost > 0) return {type:'already'};
+    for (let i=0;i<pts.length-1;i++){
+      const a = pts[i], b = pts[i+1];
+      const da = a.income - a.cost, db = b.income - b.cost;
+      if (da < 0 && db >= 0){
+        const t = da === db ? 0 : (-da)/(db - da);
+        return {type:'cross', years: a.years + t*(b.years - a.years), age: a.age + t*(b.age - a.age), i, t};
+      }
+    }
+    return {type:'none'};
+  }
+
+  // ---------- render ----------
+  function zonePill(z){
+    if (z==null) return '<span class="pill"><span class="dot"></span><span>필수생활비를 입력하세요</span></span>';
+    const Z = ZONES[z];
+    return '<span class="pill tone-'+Z.tone+'"><span class="dot"></span><span>'+Z.name+'</span></span>';
+  }
+  function render(c){
+    $('outA').textContent = fmtMan(c.A);
+    $('outAp').textContent = fmtMan(c.Ap);
+    $('outAdj').textContent = fmtMan(c.A - c.Ap);
+    $('outD').textContent = fmtMan(c.D);
+    $('outB').textContent = fmtMan(c.B);
+    $('wdOut').textContent = fmtMan(Math.round(c.wdMonthly*10)/10);
+    // hero
+    $('outPct').innerHTML = (c.pct==null ? '—' : fmtPct(c.pct).replace('%','')) + '<small>%</small>';
+    const pill = $('outZonePill');
+    pill.className = 'pill' + (c.zone!=null ? ' tone-'+ZONES[c.zone].tone : '');
+    $('outZoneName').textContent = c.zone==null ? '월 필수생활비를 입력하세요' : ZONES[c.zone].name;
+    const w = c.pct==null ? 0 : Math.max(0, Math.min(100, c.pct/120*100));
+    $('meterFill').style.width = w + '%';
+    $('meterMark').style.left = w + '%';
+    $('tAp').textContent = fmtMan(c.Ap);
+    $('tA').textContent = '월 총지출(A) ' + fmtMan(c.A);
+    $('tB').textContent = fmtMan(c.B);
+    $('tD').textContent = '바닥 현금흐름(D) ' + fmtMan(c.D);
+    $('tGap').textContent = fmtMan(c.gap);
+    $('tGapMean').textContent = c.Ap<=0 ? '월 필수생활비를 먼저 입력하세요' : (c.gap > 0 ? '아직 메워야 할 월 부족액' : (c.gap === 0 ? '비용과 현금흐름이 만난 L-BEP' : '필수생활비를 초과하는 월 안전 여유'));
+    $('tFloor').textContent = fmtPct(c.floorPct);
+    $('tBal').textContent = c.balance==null ? '—' : fmtMan(c.balance, {sign:true});
+    $('tBalD').textContent = c.balance==null ? '능동소득 + B − 월 총지출' : (c.balance < 0 ? '매달 적자입니다. 새는 돈부터 찾으십시오.' : (c.balance === 0 ? '수지 0. 먼저 보내야 남습니다.' : '흑자. 먼저 보내야 남습니다.'));
+    const Z = c.zone==null ? null : ZONES[c.zone];
+    $('zcName').textContent = Z ? Z.name + ' (' + Z.en + ')' : '아직 계산 전';
+    $('zcState').textContent = Z ? Z.state : '월 필수생활비(A′)가 0보다 커야 구간을 계산할 수 있습니다.';
+    $('zcTodo').textContent = Z ? Z.todo : '';
+    ZONES.forEach((z,i)=>{ $('zrow_'+i).className = (i===c.zone ? 'on' : ''); });
+    $('rwMonths').textContent = c.rwMonths==null ? '—' : (Math.round(c.rwMonths*10)/10).toLocaleString('ko-KR') + '개월분';
+    $('rwTarget').textContent = fmtMan(c.rwTarget);
+    $('rwShort').innerHTML = c.rwShort > 0 ? '<span class="val">'+fmtMan(c.rwShort)+'</span> 더 필요' : '<span class="ok-text">출발 기준(6개월분)을 채웠습니다</span>';
+    // dash
+    $('dAp').textContent = fmtMan(c.Ap);
+    $('dB').textContent = fmtMan(c.B);
+    $('dGap').textContent = fmtMan(c.gap);
+    $('dPct').textContent = fmtPct(c.pct);
+    // scenarios
+    $('outYears').textContent = c.years + '년';
+    SCEN.forEach(s=>{
+      const r = c.scen[s.key];
+      $('sc_Ap_'+s.key).textContent = fmtMan(Math.round(r.Ap));
+      $('sc_calc_'+s.key).textContent = c.Ap > 0 ? c.Ap.toLocaleString('ko-KR') + '만 원 × (1 + ' + r.infl + '%)^' + c.years + ' = ' + c.Ap.toLocaleString('ko-KR') + ' × ' + (Math.round(r.factor*1e6)/1e6) + ' ≈ ' + Math.round(r.Ap).toLocaleString('ko-KR') + '만 원' : '';
+      $('sc_gap_'+s.key).textContent = fmtMan(Math.round(r.gap));
+      $('sc_pct_'+s.key).textContent = fmtPct(r.pct);
+      $('sc_mean_'+s.key).textContent = r.Ap<=0 ? '—' : (r.gap > 0 ? fmtMan(Math.round(r.gap)) + ' 부족' : (Math.round(r.gap)===0 ? 'L-BEP 도달' : fmtMan(Math.round(-r.gap)) + ' 여유'));
+      $('sc_zone_'+s.key).innerHTML = zonePill(r.zone);
+      $('sc_B_'+s.key).placeholder = c.B ? String(Math.round(c.B)) : '0';
+    });
+    // curves
+    c.curve.forEach((p,i)=>{
+      $('cv_age_'+i).textContent = p.age + '세';
+      $('cv_c_'+i).placeholder = Math.round(p.autoCost).toLocaleString('ko-KR');
+      $('cv_i_'+i).placeholder = Math.round(p.autoIncome).toLocaleString('ko-KR');
+    });
+    drawChart(c);
+    const cn = $('crossNote');
+    if (c.Ap <= 0) cn.innerHTML = '월 필수생활비를 입력하면 비용곡선이 그려집니다.';
+    else if (c.cross.type === 'already') cn.innerHTML = '<b>현재 이미 자산소득곡선이 비용곡선 위에 있습니다.</b> L-BEP 100% 이상의 상태를 지속적으로 관리해야 하는 안전 영역입니다. 현금흐름의 지속성과 변동성, 물가와 의료·간병비를 계속 점검하십시오.';
+    else if (c.cross.type === 'cross') cn.innerHTML = '기준값으로 보면 두 곡선은 <b>약 ' + Math.round(c.cross.age) + '세(' + (Math.round(c.cross.years)) + '년 후) 부근</b>에서 만납니다. 이 나이는 정답이 아니라 범위의 중심입니다. 보수적·낙관적 시나리오에서 교차 시점이 어떻게 달라지는지 함께 보십시오.';
+    else cn.innerHTML = '지금 입력값으로는 두 곡선이 아직 만나지 않습니다. <b>괜찮습니다.</b> 중요한 것은 만나는 시점이 아니라 자산소득곡선이 0에서 벗어나는 것입니다. 10만 원이라도 자산으로 보내면 푸른 선이 시작됩니다.';
+    // leak
+    $('leakDeficit').placeholder = Math.round(c.leak.defAuto).toLocaleString('ko-KR');
+    $('leakHint').textContent = c.balance==null ? '흑자였다면 0' : (c.leak.defAuto > 0 ? '현재 가계수지 기준 자동값 ' + fmtMan(Math.round(c.leak.defAuto)) : '현재 가계수지는 흑자, 자동값 0');
+    $('leakAlloc').textContent = fmtMan(c.leak.alloc);
+    $('leakRemain').textContent = fmtMan(c.leak.remain);
+    $('allocSum').textContent = fmtMan(c.allocSum);
+    const am = $('allocMsg');
+    if (c.allocSum > c.leak.alloc + 1e-9) { am.className = 'warn-text'; am.textContent = '합계가 실제 신규 배분 가능액(' + fmtMan(c.leak.alloc) + ')보다 ' + fmtMan(c.allocSum - c.leak.alloc) + ' 많습니다. 먼저 적자를 메워야 남은 돈에 역할을 줄 수 있습니다.'; }
+    else if (c.allocSum > 0) { am.className = 'ok-text'; const left = Math.round((c.leak.alloc - c.allocSum)*10)/10; am.textContent = left > 0 ? '배분 가능액 안에서 역할을 정했습니다. 남은 ' + fmtMan(left) + '도 이름을 붙이십시오. 역할 없는 돈은 다시 샙니다.' : '배분 가능액 전부에 역할을 정했습니다. 급여 다음 날 자동이체를 예약하십시오.'; }
+    else { am.className = 'note'; am.textContent = c.leak.remain > 0 ? '절감액 전부를 적자 축소에 사용하고, 신규 배분은 아직 시작하지 않습니다.' : '막은 돈을 그냥 통장에 두지 마십시오. 봉투에 이름을 붙여 보내야 지켜집니다.'; }
+    // env
+    $('envSum').textContent = fmtMan(c.envSum);
+    $('envDiff').textContent = c.envDiff==null ? '—' : fmtMan(c.envDiff, {sign:true});
+    const em = $('envMsg');
+    if (c.envDiff==null) { em.className = 'note'; em.textContent = '월수입을 입력하면 봉투 합계와 비교합니다.'; }
+    else if (c.envDiff < 0) { em.className = 'warn-text'; em.textContent = '봉투 합계가 월수입보다 ' + fmtMan(-c.envDiff) + ' 많습니다. 현재 가계가 적자이거나 한 봉투가 다른 봉투를 침범하고 있다는 신호입니다. 고정비 봉투부터 점검하십시오.'; }
+    else if (c.envDiff === 0) { em.className = 'ok-text'; em.textContent = '월수입과 봉투 합계가 일치합니다. 모든 돈에 역할이 있습니다.'; }
+    else { em.className = 'note'; em.textContent = '아직 이름이 없는 돈 ' + fmtMan(c.envDiff) + '이 있습니다. 비상 봉투나 자산 봉투에 먼저 보내십시오. 이름 없는 돈은 새고, 역할 있는 돈은 자랍니다.'; }
+    // summary
+    $('sumBox').textContent = buildSummary(c);
+  }
+
+  function buildSummary(c){
+    const Z = c.zone==null ? null : ZONES[c.zone];
+    const L = [];
+    L.push('[부의 곡선 L-BEP 계산 결과] 기준일 ' + todayStr());
+    L.push('나의 월 총지출(A)은 ' + fmtMan(c.A) + '이다.');
+    L.push('나의 월 필수생활비(A′)는 ' + fmtMan(c.Ap) + '이다.');
+    L.push('나의 세후 지속가능 월 현금흐름(B)은 ' + fmtMan(c.B) + '이다. (바닥 현금흐름 D ' + fmtMan(c.D) + ')');
+    L.push('나의 Life Gap(A′ − B)은 ' + fmtMan(c.gap) + '이다.');
+    L.push('나의 L-BEP 달성률(B ÷ A′ × 100)은 ' + fmtPct(c.pct) + '이다.');
+    L.push('나는 현재 ' + (Z ? Z.name : '(계산 전)') + '에 있다.');
+    L.push('바닥 현금흐름 충당률(D ÷ A′)은 ' + fmtPct(c.floorPct) + '이다.');
+    if (c.balance!=null) L.push('월 가계수지는 ' + fmtMan(c.balance,{sign:true}) + '이다.');
+    if (c.rwMonths!=null) L.push('비상 활주로는 ' + (Math.round(c.rwMonths*10)/10) + '개월분이다. (출발 기준 6개월분 ' + fmtMan(c.rwTarget) + ', 부족 ' + fmtMan(c.rwShort) + ')');
+    L.push('');
+    L.push('[세 가지 시나리오: ' + c.targetAge + '세, ' + c.years + '년 후]');
+    SCEN.forEach(s=>{
+      const r = c.scen[s.key];
+      L.push('· ' + s.name.replace(' 시나리오','') + '(물가 ' + r.infl + '%): 필수생활비 ' + fmtMan(Math.round(r.Ap)) + ', 현금흐름 ' + fmtMan(Math.round(r.B)) + ', 달성률 ' + fmtPct(r.pct) + ', ' + (r.zone==null?'—':ZONES[r.zone].name) + ', ' + (r.gap>0 ? fmtMan(Math.round(r.gap))+' 부족' : fmtMan(Math.round(-r.gap))+' 여유'));
+      if (state.scen[s.key].action) L.push('  → 행동: ' + state.scen[s.key].action);
+    });
+    L.push('');
+    if (c.cross.type==='cross') L.push('두 곡선 교차 예상: 약 ' + Math.round(c.cross.age) + '세 부근 (기준 시나리오)');
+    else if (c.cross.type==='already') L.push('두 곡선: 현재 이미 L-BEP 도달 상태');
+    else L.push('두 곡선: 아직 만나지 않음. 자산소득곡선을 0에서 벗어나게 하는 것이 첫 목표');
+    if (c.leak.save > 0) L.push('새는 돈 절감액 ' + fmtMan(c.leak.save) + ' − 기존 적자 ' + fmtMan(c.leak.deficit) + ' = 실제 신규 배분 가능액 ' + fmtMan(c.leak.alloc));
+    return L.join('\n');
+  }
+
+  function todayStr(){
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
+
+  // ---------- chart ----------
+  let chartGeom = null;
+  function niceMax(v){
+    if (!(v > 0)) return 100;
+    const p = Math.pow(10, Math.floor(Math.log10(v)));
+    const f = v / p;
+    const n = f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10;
+    return n * p;
+  }
+  function drawChart(c){
+    const W = 640, H = 300, padL = 58, padR = 20, padT = 14, padB = 34;
+    const pts = c.curve;
+    const maxV = niceMax(Math.max(10, ...pts.map(p=>Math.max(p.cost, p.income))) * 1.08);
+    const x = (yr)=> padL + (yr/40) * (W - padL - padR);
+    const y = (v)=> padT + (1 - v/maxV) * (H - padT - padB);
+    const ticks = 4;
+    let g = '';
+    for (let i=0;i<=ticks;i++){
+      const v = maxV*i/ticks; const yy = y(v);
+      g += '<line class="grid" x1="'+padL+'" y1="'+yy.toFixed(1)+'" x2="'+(W-padR)+'" y2="'+yy.toFixed(1)+'"/>';
+      g += '<text x="'+(padL-8)+'" y="'+(yy+4).toFixed(1)+'" text-anchor="end">'+(v>=10000 ? (Math.round(v/1000)/10)+'억' : Math.round(v).toLocaleString('ko-KR'))+'</text>';
+    }
+    g += '<line class="axis" x1="'+padL+'" y1="'+y(0).toFixed(1)+'" x2="'+(W-padR)+'" y2="'+y(0).toFixed(1)+'"/>';
+    g += '<text x="'+(padL-8)+'" y="'+(padT-2)+'" text-anchor="end" font-size="10">만 원/월</text>';
+    pts.forEach(p=>{ g += '<text x="'+x(p.years).toFixed(1)+'" y="'+(H-padB+16)+'" text-anchor="middle">'+p.age+'세</text><text x="'+x(p.years).toFixed(1)+'" y="'+(H-padB+28)+'" text-anchor="middle" font-size="10">'+(p.years===0?'현재':p.years+'년 후')+'</text>'; });
+    const path = (key)=> pts.map((p,i)=> (i?'L':'M') + x(p.years).toFixed(1) + ' ' + y(p[key]).toFixed(1)).join(' ');
+    g += '<path class="line cost" d="'+path('cost')+'"/>';
+    g += '<path class="line income" d="'+path('income')+'"/>';
+    if (c.cross && c.cross.type==='cross'){
+      const cx = x(c.cross.years); const cy = y(pts[c.cross.i].cost + c.cross.t*(pts[c.cross.i+1].cost - pts[c.cross.i].cost));
+      g += '<line class="xline" x1="'+cx.toFixed(1)+'" y1="'+padT+'" x2="'+cx.toFixed(1)+'" y2="'+y(0).toFixed(1)+'"/>';
+      g += '<circle cx="'+cx.toFixed(1)+'" cy="'+cy.toFixed(1)+'" r="7" fill="none" stroke="var(--ink)" stroke-width="1.5"/>';
+      const anchor = cx > W - 120 ? 'end' : 'start';
+      g += '<text class="xlab" x="'+(cx + (anchor==='end'?-10:10)).toFixed(1)+'" y="'+(padT+12)+'" text-anchor="'+anchor+'">L-BEP 약 '+Math.round(c.cross.age)+'세</text>';
+    }
+    pts.forEach(p=>{
+      const px = x(p.years), pyc = y(p.cost), pyi = y(p.income);
+      g += '<circle class="mk cost" cx="'+px.toFixed(1)+'" cy="'+pyc.toFixed(1)+'" r="4.5"/>';
+      g += '<rect class="mk income" x="'+(px-4).toFixed(1)+'" y="'+(pyi-4).toFixed(1)+'" width="8" height="8" transform="rotate(45 '+px.toFixed(1)+' '+pyi.toFixed(1)+')"/>';
+    });
+    // end labels (skip when they would collide)
+    const last = pts[pts.length-1];
+    const ex = x(last.years) - 6;
+    if (Math.abs(y(last.cost) - y(last.income)) >= 16){
+      g += '<text x="'+ex.toFixed(1)+'" y="'+(y(last.cost) - 9).toFixed(1)+'" text-anchor="end" font-weight="600" fill="var(--ink-2)">'+Math.round(last.cost).toLocaleString('ko-KR')+'</text>';
+      g += '<text x="'+ex.toFixed(1)+'" y="'+(y(last.income) - 9).toFixed(1)+'" text-anchor="end" font-weight="600" fill="var(--ink-2)">'+Math.round(last.income).toLocaleString('ko-KR')+'</text>';
+    }
+    g += '<line class="hover" id="hoverLine" x1="0" y1="'+padT+'" x2="0" y2="'+y(0).toFixed(1)+'" style="display:none"/>';
+    $('chartHost').innerHTML = '<svg class="curve" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="비용곡선과 자산소득곡선 차트. 표의 숫자와 동일합니다.">'+g+'</svg>';
+    chartGeom = {W,H,padL,padR,x,pts};
+  }
+  function chartHover(ev){
+    if (!chartGeom) return;
+    const svg = $('chartHost').querySelector('svg'); if (!svg) return;
+    const rect = svg.getBoundingClientRect();
+    const px = (ev.clientX - rect.left) / rect.width * chartGeom.W;
+    let best = 0, bd = Infinity;
+    chartGeom.pts.forEach((p,i)=>{ const d = Math.abs(chartGeom.x(p.years) - px); if (d < bd){ bd = d; best = i; } });
+    const p = chartGeom.pts[best];
+    const hl = $('hoverLine'); const hx = chartGeom.x(p.years);
+    hl.setAttribute('x1', hx); hl.setAttribute('x2', hx); hl.style.display = '';
+    const tip = $('chartTip');
+    const diff = p.income - p.cost;
+    tip.innerHTML = '<b>' + p.age + '세' + (p.years ? ' (' + p.years + '년 후)' : ' (현재)') + '</b><br>비용곡선 ' + fmtMan(Math.round(p.cost)) + '<br>자산소득곡선 ' + fmtMan(Math.round(p.income)) + '<br>' + (diff >= 0 ? '여유 ' + fmtMan(Math.round(diff)) : 'Life Gap ' + fmtMan(Math.round(-diff)));
+    const box = $('chartHost').getBoundingClientRect();
+    const left = (hx / chartGeom.W) * rect.width + (rect.left - box.left);
+    tip.style.left = Math.max(80, Math.min(box.width - 80, left)) + 'px';
+    tip.style.top = (rect.top - box.top + 60) + 'px';
+    tip.style.display = 'block';
+  }
+  function chartLeave(){ const hl = $('hoverLine'); if (hl) hl.style.display = 'none'; $('chartTip').style.display = 'none'; }
+
+  // ---------- persistence ----------
+  let saveTimer = null;
+  function save(){
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(()=>{
+      try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); $('saveToast').textContent = '이 기기에 자동 저장됨'; }
+      catch(e){ $('saveToast').textContent = '저장은 되지 않지만 계산은 됩니다'; }
+    }, 250);
+  }
+
+  function update(){ render(compute()); save(); }
+
+  // ---------- events ----------
+  document.addEventListener('input', (e)=>{
+    const el = e.target; if (!el.dataset || !el.dataset.bind) return;
+    let v;
+    if (el.tagName === 'SELECT') v = el.value;
+    else if (el.type === 'number') v = el.value === '' ? null : Number(el.value);
+    else v = el.value;
+    setPath(state, el.dataset.bind, v);
+    update();
+  });
+  document.addEventListener('click', (e)=>{
+    const t = e.target.closest('button'); if (!t) return;
+    if (t.id === 'wdToggle'){ const h = $('wdHelp'); h.classList.toggle('open'); t.textContent = h.classList.contains('open') ? '계산 도우미 닫기' : '계산 도우미 열기'; if (h.classList.contains('open')) $('wdAssets').focus(); }
+    if (t.id === 'wdApply'){ const c = compute(); state.income.withdraw = Math.round(c.wdMonthly); $('inc_withdraw').value = state.income.withdraw; update(); }
+    if (t.id === 'btnDemo'){ state = demoState(); fillInputsFromState(); update(); $('saveToast').textContent = '김상철의 숫자를 불러왔습니다. 항목별 필수 금액은 책의 합계(380만 원)에 맞춘 예시입니다.'; }
+    if (t.id === 'btnReset'){ $('resetConfirm').hidden = false; }
+    if (t.id === 'btnResetNo'){ $('resetConfirm').hidden = true; }
+    if (t.id === 'btnResetYes'){ state = blankState(); fillInputsFromState(); try{ localStorage.removeItem(STORE_KEY);}catch(e){} update(); $('resetConfirm').hidden = true; $('saveToast').textContent = '모두 지웠습니다. 0에서 다시 시작합니다.'; }
+    if (t.id === 'btnCopy'){
+      const text = $('sumBox').textContent;
+      const done = ()=>{ $('copyToast').textContent = '복사했습니다.'; };
+      const fail = ()=>{ const r = document.createRange(); r.selectNodeContents($('sumBox')); const s = window.getSelection(); s.removeAllRanges(); s.addRange(r); $('copyToast').textContent = '요약을 선택했습니다. 길게 눌러 복사하십시오.'; };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, fail); else fail();
+    }
+  });
+  const host = $('chartHost');
+  host.addEventListener('pointermove', chartHover);
+  host.addEventListener('pointerdown', chartHover);
+  host.addEventListener('pointerleave', chartLeave);
+
+  // ---------- init ----------
+  $('todayStr').textContent = todayStr();
+  buildInputs();
+  fillInputsFromState();
+  render(compute());
+})();
+</script>
+
+</body>
+</html>
