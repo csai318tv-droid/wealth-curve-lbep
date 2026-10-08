@@ -12,7 +12,7 @@
   if (foot) {
     var p = document.createElement('p');
     p.style.marginTop = '6px';
-    p.innerHTML = '<a href="privacy.html">개인정보처리방침 · 이용 안내</a> · <a href="https://github.com/csai318tv-droid/wealth-curve-lbep/issues" target="_blank" rel="noopener">문의·의견 남기기</a>';
+    p.innerHTML = '<a href="outlook-2027.html">올해의 부의 곡선 2027 전망</a> · <a href="membership.html">100일 멤버십</a> · <a href="privacy.html">개인정보처리방침 · 이용 안내</a> · <a href="https://github.com/csai318tv-droid/wealth-curve-lbep/issues" target="_blank" rel="noopener">문의·의견 남기기</a>';
     foot.appendChild(p);
   }
 
