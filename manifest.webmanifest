@@ -1,0 +1,18 @@
+{
+  "name": "부의 곡선 L-BEP 계산기",
+  "short_name": "L-BEP 계산기",
+  "description": "내 인생의 손익분기점을 숫자로 바꾸는 도구. 안유화 「부의 곡선」 공식 계산기.",
+  "lang": "ko",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f3f5f8",
+  "theme_color": "#1d5fc2",
+  "categories": ["finance", "education"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
