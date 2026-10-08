@@ -1,5 +1,5 @@
 /* 부의 곡선 L-BEP 계산기 — 서비스워커 (오프라인·설치형 앱 지원) */
-const VERSION = 'lbep-2026-10-08-2';
+const VERSION = 'lbep-2026-10-08-3';
 const FONT_CACHE = VERSION + '-fonts';
 const CORE = ['./', './index.html', './manifest.webmanifest', './pwa.js', './privacy.html', './icons/icon-192.png', './icons/icon-512.png'];
 
