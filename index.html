@@ -151,6 +151,24 @@ a.btn{display:inline-flex;align-items:center;text-decoration:none}
 .modal-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
 .modal-head h3{font-size:17px}
 #cardImg{width:100%;max-width:400px;border-radius:12px;border:1px solid var(--line);display:block;margin:10px auto;background:#fff}
+.phases{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+.phase-chip{border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:12.5px;color:var(--ink-2);flex:1 1 120px;min-width:0;line-height:1.4}
+.phase-chip b{display:block;color:var(--ink);font-size:14px}
+.phase-chip.on{border-color:var(--accent);background:var(--accent-soft)}
+.phase-chip.done{opacity:.6}
+.wcard{border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-top:10px;background:var(--surface)}
+.wcard.on{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.wcard .wh{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline}
+.wcard .wh .no{font-weight:700;color:var(--accent);font-size:13.5px}
+.wcard .wh b{font-size:16px}
+.wcard .wh .days{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.wcard .mission{font-size:14px;color:var(--ink-2);margin:6px 0 10px}
+.checks{list-style:none;margin:0;padding:0;display:grid;gap:7px}
+.checks label{display:flex;gap:10px;align-items:flex-start;font-size:14.5px;line-height:1.45;cursor:pointer;color:var(--ink)}
+.checks input{margin:3px 0 0;width:18px;height:18px;accent-color:var(--accent);flex:none}
+.checks label.done{color:var(--muted);text-decoration:line-through}
+.wcard .wfoot{display:flex;flex-wrap:wrap;gap:8px 14px;margin-top:10px;font-size:13px;color:var(--muted);align-items:center}
+input[type=date].text{width:auto;min-width:160px}
 .btnrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .toast{font-size:13.5px;color:var(--ink-2)}
 
@@ -305,6 +323,7 @@ details.help .body{margin-top:8px;color:var(--ink-2);line-height:1.55}
       <li><a href="#step5"><b>5</b>두 곡선 그리기</a></li>
       <li><a href="#step6"><b>6</b>새는 돈 배분</a></li>
       <li><a href="#step7"><b>7</b>여섯 봉투</a></li>
+      <li><a href="#step8"><b>8</b>100일 진행판</a></li>
       <li><a href="#summary"><b>✓</b>오늘의 기록</a></li>
     </ul>
   </nav>
@@ -539,6 +558,31 @@ details.help .body{margin-top:8px;color:var(--ink-2);line-height:1.55}
     <p class="note" style="margin-top:8px">자동이체의 첫 순서: ① 필수생활비와 계약상 의무비용 확보 → ② 신규 연체와 고금리 부채 증가 중단 → ③ 최소한의 출발 비상금 → ④ 월 현금수지 0 이상 전환 → ⑤ 자산 봉투 자동이체 시작.</p>
   </section>
 
+  <!-- STEP 8: 100-day project -->
+  <section class="ws" id="step8">
+    <div class="ws-head">
+      <div class="tag"><b>STEP 8</b> 독자의 L-BEP 100일 프로젝트 · 책 부록 374쪽</div>
+      <h2>100일 프로젝트 진행판</h2>
+      <p class="intro">책의 100일 프로젝트를 그대로 옮겼습니다. 시작일을 정하면 오늘이 며칠째인지, 이번 주 워크시트가 무엇인지, 그 주의 ‘오늘의 1밀리미터’가 뜹니다. 체크한 내용은 이 기기에만 저장됩니다. 100일이 지났을 때 100%에 도달하지 못해도 괜찮습니다. 자산소득곡선의 첫 점이 생기면 방향은 이미 달라진 것입니다.</p>
+    </div>
+    <div class="fields">
+      <div class="field"><span class="lab">시작일</span><input type="date" class="text" id="p100Start" data-bind="p100.start"></div>
+      <button class="btn sm" type="button" id="p100Today">오늘부터 시작</button>
+      <div class="field"><span class="lab">오늘</span><span class="val" id="p100Day">—</span></div>
+      <div class="field"><span class="lab">오늘의 1밀리미터 완료</span><span class="val" id="p100Prog">0/0</span></div>
+    </div>
+    <div class="phases" id="p100Phases"></div>
+    <div id="p100Week"></div>
+    <details class="help" style="margin-top:12px">
+      <summary>워크시트 14개 전체 보기</summary>
+      <div class="body" id="p100All"></div>
+    </details>
+    <div class="share-box">
+      <div><b>교수님과 함께 100일 하기</b><p class="small">매주 한 번 온라인으로 모여 숫자를 확인하고 행동 하나를 실행하는 「부의 곡선」 100일 멤버십입니다.</p></div>
+      <a class="btn primary" href="https://csai318tv-droid.github.io/wealth-curve-lbep/membership.html" target="_blank" rel="noopener">멤버십 안내 보기</a>
+    </div>
+  </section>
+
   <!-- SUMMARY -->
   <section class="ws" id="summary">
     <div class="ws-head">
@@ -639,6 +683,44 @@ details.help .body{margin-top:8px;color:var(--ink-2);line-height:1.55}
     {key:'relation', lab:'⑤ 관계 봉투', role:'부모님·경조사·가족행사·마지막 비용'},
     {key:'asset', lab:'⑥ 자산 봉투', role:'투자·연금·장기자산과 미래 현금흐름의 씨앗'}
   ];
+  const PHASES = [
+    {name:'진단', sub:'불안을 숫자로 바꾼다', d1:1, d2:15},
+    {name:'배분', sub:'돈에 역할을 부여한다', d1:16, d2:35},
+    {name:'성장', sub:'자산소득곡선의 첫 점을 만든다', d1:36, d2:55},
+    {name:'확장', sub:'소득의 통로를 확장한다', d1:56, d2:82},
+    {name:'방어·승계', sub:'가족이 이어갈 시스템을 만든다', d1:83, d2:100}
+  ];
+  const WORKSHEETS = [
+    {key:'w1', no:'①', d1:1, d2:7, page:34, step:'#step1', title:'나의 갭 계산하기', mission:'막연한 불안을 숫자로 바꾸고, 나의 출발점을 확인한다.',
+     items:['최근 한 달의 들어오는 돈과 나가는 돈을 각각 한 줄로 적는다.','노동소득을 제외하고도 반복되는 세후 지속가능 월 현금흐름을 적는다.']},
+    {key:'w2', no:'②', d1:8, d2:15, page:58, step:'#step3', title:'나의 두 곡선 그리기', mission:'비용곡선과 자산소득곡선을 그리고, 나의 L-BEP 달성률을 계산한다.',
+     items:['월 총지출에서 ‘반드시 지킬 비용’과 ‘조정 가능한 비용’을 서로 다른 숫자로 구분하고, 나의 Life Gap과 L-BEP 달성률을 계산한다.','보수적·기준·낙관적 시나리오 중 최소한 기준 시나리오 한 줄을 작성한다.']},
+    {key:'w3', no:'③', d1:16, d2:24, page:76, step:'#step7', title:'나의 여섯 봉투 만들기', mission:'한곳에 섞인 돈을 여섯 가지 역할로 나누어 관리한다.',
+     items:['여섯 봉투의 이름을 만들었다.','각 봉투의 사용규칙을 정했다.','가장 비어 있는 봉투를 확인했다.','다른 돈을 가장 자주 침범하는 봉투를 찾았다.','급여 다음 날 자동이체를 예약했다.','역할이 끝난 돈의 다음 목적을 정했다.']},
+    {key:'w4', no:'④', d1:25, d2:35, page:93, step:'#step6', title:'새는 돈 점검표', mission:'만족을 제공하지 않음에도 반복되는 지출을 찾아서 막고, 되찾은 돈에 다른 역할을 부여한다.',
+     items:['최근 3개월 거래내역을 확인했다.','자동으로 반복되는 결제 세 건을 찾았다.','절감액과 실제 신규 배분 가능액을 구분했다.','막은 돈의 다음 역할을 결정했다.','자동이체 금액을 조정했다.']},
+    {key:'w5', no:'⑤', d1:36, d2:40, page:115, step:null, title:'첫 장기투자 구조 만들기', mission:'무엇을 살지 고르기 전에 투자할 돈의 역할과 원칙을 정하고, 자산소득곡선의 첫 점을 찍기 위한 투자를 진행한다.',
+     items:['투자하면 안 되는 돈을 먼저 분리했다.','가계 안전문을 확인했다.','투자목적·기간·금액을 한 문장으로 적었다.','투자상품의 구조·비용·위험을 확인했다.','나의 투자헌법을 작성했다.','감당 가능한 금액으로 첫 매수를 실행했거나, 투자 전 안전목표를 정했다.','자동이체와 자동매수를 구분해 설정했다.']},
+    {key:'w6', no:'⑥', d1:41, d2:45, page:135, step:null, title:'한 바구니 위험 진단하기', mission:'여러 자산처럼 보이지만 실제로 같은 위험에 묶여 있는 부분을 찾는다.',
+     items:['내 자산·소득·경력에서 가장 큰 집중위험 세 가지를 적는다.','서로 다른 이름이지만 같은 충격에 흔들리는 자산을 하나로 묶어 표시한다.','이번 달에는 가장 크게 집중된 위험을 더 늘리지 않는 결정을 한 가지 실행한다.']},
+    {key:'w7', no:'⑦', d1:46, d2:50, page:168, step:null, title:'하락장 행동규칙 만들기', mission:'가격이 하락할 때 변동성과 진짜 위험을 구분하고, 공포 속에서도 지킬 행동규칙을 만든다.',
+     items:['투자계좌별 돈의 출처와 사용 시점을 적었다.','가격변동과 구조변화를 구분했다.','하락 직후의 감정 대기시간을 정했다.','투자한 이유와 매도조건을 기록했다.','계좌 확인 횟수를 줄였다.','절대 침범하지 않을 봉투를 정했다.']},
+    {key:'w8', no:'⑧', d1:51, d2:55, page:192, step:null, title:'우리 집 돈 행동 시스템 만들기', mission:'좋은 결정을 매번 다시 내리지 않아도 돈의 원칙이 반복되도록 가족의 행동환경을 설계한다.',
+     items:['우리 가족의 정례 가족재무회의 날짜를 달력에 등록했다.','반복해야 할 좋은 행동 하나를 설정했다.','소득이 줄었을 때 중단할 자동화 규칙을 정했다.','비상 봉투를 사용한 뒤의 복구규칙을 만들었다.','가족에게 중요문서 한 가지의 보관 위치를 알려주었다.']},
+    {key:'w9', no:'⑨', d1:56, d2:62, page:222, step:null, title:'AI 시대 나의 노출도 점검하기', mission:'AI로 가격압력을 받을 업무와 사람이 더 잘해야 할 업무를 구분하고, 내 경험을 새로운 소득의 재료로 다시 해석한다.',
+     items:['내 일에서 AI가 보조할 업무와 사람이 책임질 판단을 구분했다.','사람들이 내게 반복해서 물었던 질문 세 가지를 적었다.','그중 하나를 AI와 함께 한 페이지짜리 체크리스트·강의안·템플릿으로 만들어본다.','첫 고객 후보를 한 사람 또는 한 조직으로 좁혔다.','한 페이지짜리 첫 결과물의 제목을 정했다.','AI 활용 시 입력하지 않을 민감정보를 정했다.','관련 AI 길목 두 개를 선택했다.','7일 이내 실행할 행동 하나를 달력에 등록했다.']},
+    {key:'w10', no:'⑩', d1:63, d2:67, page:253, step:null, title:'비트코인 공부와 승계 점검', mission:'비트코인을 가격이 아니라 돈·신뢰·소유의 구조로 이해하고, 보유량 0을 포함한 위험한도와 보관·승계 원칙을 세운다.',
+     items:['비트코인 네트워크와 비트코인 자산의 차이를 적었다.','비트코인·스테이블코인·CBDC·토큰화 자산을 구분했다.','보유량 0을 포함해 나의 보유원칙을 정했다.','절대 사용하지 않을 돈을 표시했다.','나의 최대 위험한도를 정했다.','보유방식별 실제 권리와 위험을 비교했다.','가족 정보함에 디지털자산의 존재와 접근절차를 추가했다.','개인키·시드문구와 자산목록을 분리하기로 했다.']},
+    {key:'w11', no:'⑪', d1:68, d2:72, page:280, step:'#step3', title:'내 생애단계에서 돈의 역할 정하기', mission:'주민등록 나이가 아니라 현재의 책임과 비용, 회복기간을 확인하고, 나 자신이라는 생애자원과 돈이 맡아야 할 다음 역할을 정한다.',
+     items:['현재 L-BEP 좌표를 계산했다.','내 주민등록 나이와 실제 생애단계를 구분했다.','인적자본과 L-BEP 현금흐름을 구분했다.','가장 빠르게 감가상각되는 나의 생애자원을 찾았다.','여섯 봉투 중 이번 단계의 우선봉투를 정했다.','30일 안에 완료할 행동 하나를 달력에 등록했다.']},
+    {key:'w12', no:'⑫', d1:73, d2:82, page:309, step:'#step2', title:'은퇴 후 현금흐름과 3+1 은퇴 활주로', mission:'은퇴 후 월급을 대신할 현금흐름을 계산하고, 자산을 사용할 시점에 따라 배치해 장수·물가·시장하락과 돌봄비를 함께 견딜 구조를 만든다.',
+     items:['은퇴 후 월 필수생활비(A′)를 계산했다.','바닥 현금흐름과 전체 지속가능 현금흐름을 구분했다.','은퇴 후 Life Gap과 L-BEP 달성률을 계산했다.','연금개시 전후의 공백기간을 확인했다.','생활 활주로의 목표금액을 계산했다.','은퇴자산을 3+1 구조로 나누었다.','의료·간병·마지막 비용을 일반생활비와 분리했다.','가족이 자산과 정보를 찾을 첫 절차를 기록했다.','중복 계산한 돈이 없는지 확인했다.']},
+    {key:'w13', no:'⑬', d1:83, d2:89, page:332, step:null, title:'세계가 흔들려도 가족의 생활을 지키는 법', mission:'세계의 충격이 우리 가족에게 들어오는 네 가지 경로를 찾고, 한 국가·한 통화·한 기관·한 기기에 집중된 위험을 줄인다.',
+     items:['외부충격의 네 가지 전달경로를 적었다.','국가·통화·기관·플랫폼 집중을 확인했다.','스트레스 이후 Life Gap과 L-BEP를 계산했다.','우리 가족의 단일 실패지점을 찾았다.','72시간 접근훈련을 실행했다.','대체 결제수단과 계정복구 순서를 정했다.','위기 때의 가족 행동순서를 기록했다.','지정학 뉴스를 별도의 매매신호로 사용하지 않기로 했다.']},
+    {key:'w14', no:'⑭', d1:90, d2:100, page:356, step:'#summary', title:'한 장에 연결하고 가족에게 남기기', mission:'흩어져 있는 내 돈과 위험, 정보와 행동원칙을 한 장의 지도에 연결하고, 가족이 필요한 것을 찾고 움직일 수 있는 구조를 완성한다.',
+     items:['월 필수생활비와 지속가능 현금흐름을 한 장에 연결했다.','Life Gap과 L-BEP 달성률을 기준일에 맞춰 계산했다.','비상·전환 활주로와 부채, 큰 비용을 함께 표시했다.','가족 정보함의 위치와 최초 확인자를 정했다.','비밀정보와 접근절차를 분리했다.','가족의 돈 원칙을 함께 작성했다.','첫날과 오늘의 변화를 비교했다.','다음 100일의 첫 행동과 날짜를 정했다.']}
+  ];
+  function blankChecks(){ const o = {}; WORKSHEETS.forEach(w=>{ o[w.key] = w.items.map(()=>false); }); return o; }
 
   function blankState(){
     return {
@@ -651,7 +733,8 @@ details.help .body{margin-top:8px;color:var(--ink-2);line-height:1.55}
       scen: {cons:{infl:null,B:null,action:''}, base:{infl:null,B:null,action:''}, opt:{infl:null,B:null,action:''}},
       curve: CURVE_POINTS.map(()=>({cost:null, income:null, memo:''})),
       leak: {save:null, deficit:null, alloc:{deficit:null,emergency:null,future:null,asset:null,relation:null}},
-      env: {income:null, living:null, fixed:null, emergency:null, future:null, relation:null, asset:null}
+      env: {income:null, living:null, fixed:null, emergency:null, future:null, relation:null, asset:null},
+      p100: {start:null, checks: blankChecks()}
     };
   }
   function demoState(){
@@ -857,6 +940,11 @@ details.help .body{margin-top:8px;color:var(--ink-2);line-height:1.55}
     c.envSum = ENV.reduce((a,x)=> a + n0(state.env[x.key]), 0);
     c.envIncome = num(state.env.income);
     c.envDiff = c.envIncome!=null ? c.envIncome - c.envSum : null;
+    // 100-day project
+    const p = state.p100 || {start:null, checks:{}};
+    c.p100 = {start: p.start || null, day: null, total: 0, done: 0, per: {}};
+    WORKSHEETS.forEach(w=>{ const arr = (p.checks && p.checks[w.key]) || []; const d = arr.filter(Boolean).length; c.p100.per[w.key] = d; c.p100.total += w.items.length; c.p100.done += d; });
+    if (p.start){ const s = new Date(p.start + 'T00:00:00'); const t = new Date(); t.setHours(0,0,0,0); if (!isNaN(s.getTime())) c.p100.day = Math.floor((t - s)/86400000) + 1; }
     return c;
   }
   function findCross(pts){
@@ -958,8 +1046,36 @@ details.help .body{margin-top:8px;color:var(--ink-2);line-height:1.55}
     else if (c.envDiff < 0) { em.className = 'warn-text'; em.textContent = '봉투 합계가 월수입보다 ' + fmtMan(-c.envDiff) + ' 많습니다. 현재 가계가 적자이거나 한 봉투가 다른 봉투를 침범하고 있다는 신호입니다. 고정비 봉투부터 점검하십시오.'; }
     else if (c.envDiff === 0) { em.className = 'ok-text'; em.textContent = '월수입과 봉투 합계가 일치합니다. 모든 돈에 역할이 있습니다.'; }
     else { em.className = 'note'; em.textContent = '아직 이름이 없는 돈 ' + fmtMan(c.envDiff) + '이 있습니다. 비상 봉투나 자산 봉투에 먼저 보내십시오. 이름 없는 돈은 새고, 역할 있는 돈은 자랍니다.'; }
+    // 100-day project
+    renderP100(c);
     // summary
     $('sumBox').textContent = buildSummary(c);
+  }
+  function wcard(w, c, on){
+    const checks = (state.p100 && state.p100.checks && state.p100.checks[w.key]) || [];
+    const items = w.items.map((it,i)=>'<li><label class="'+(checks[i]?'done':'')+'"><input type="checkbox" data-check="'+w.key+':'+i+'"'+(checks[i]?' checked':'')+'><span>'+it+'</span></label></li>').join('');
+    return '<div class="wcard'+(on?' on':'')+'" id="wc_'+w.key+'">'+
+      '<div class="wh"><span class="no">워크시트 '+w.no+'</span><b>'+w.title+'</b><span class="days">DAY '+w.d1+'–'+w.d2+' · 책 '+w.page+'쪽</span></div>'+
+      '<p class="mission">미션: '+w.mission+'</p>'+
+      '<ul class="checks">'+items+'</ul>'+
+      '<div class="wfoot"><span>오늘의 1밀리미터 '+c.p100.per[w.key]+'/'+w.items.length+'</span>'+(w.step?'<a href="'+w.step+'">앱에서 바로 하기 →</a>':'<span>책의 워크시트에서 직접 작성</span>')+'</div>'+
+      '</div>';
+  }
+  function renderP100(c){
+    const d = c.p100.day;
+    let dayText, cur;
+    if (c.p100.start == null){ dayText = '시작일을 정하면 오늘이 며칠째인지 보입니다'; cur = WORKSHEETS[0]; }
+    else if (d < 1){ dayText = '시작 ' + (1 - d) + '일 전'; cur = WORKSHEETS[0]; }
+    else if (d > 100){ dayText = '100일 완료. 다음 100일의 첫 행동을 정하십시오'; cur = WORKSHEETS[WORKSHEETS.length-1]; }
+    else { const ph = PHASES.find(p=> d >= p.d1 && d <= p.d2); dayText = d + '일째 · ' + (ph ? ph.name + ' 단계' : ''); cur = WORKSHEETS.find(w=> d >= w.d1 && d <= w.d2) || WORKSHEETS[0]; }
+    $('p100Day').textContent = dayText;
+    $('p100Prog').textContent = c.p100.done + '/' + c.p100.total;
+    $('p100Phases').innerHTML = PHASES.map(p=>{
+      const cls = (d != null && d >= p.d1 && d <= p.d2) ? ' on' : ((d != null && d > p.d2) ? ' done' : '');
+      return '<div class="phase-chip'+cls+'"><b>'+p.name+'</b>Day '+p.d1+'~'+p.d2+'<br><span class="small">'+p.sub+'</span></div>';
+    }).join('');
+    $('p100Week').innerHTML = '<div class="eyebrow" style="margin-bottom:6px">이번 주 워크시트</div>' + wcard(cur, c, true);
+    $('p100All').innerHTML = WORKSHEETS.map(w=> wcard(w, c, w === cur)).join('');
   }
 
   function buildSummary(c){
@@ -987,6 +1103,7 @@ details.help .body{margin-top:8px;color:var(--ink-2);line-height:1.55}
     else if (c.cross.type==='already') L.push('두 곡선: 현재 이미 L-BEP 도달 상태');
     else L.push('두 곡선: 아직 만나지 않음. 자산소득곡선을 0에서 벗어나게 하는 것이 첫 목표');
     if (c.leak.save > 0) L.push('새는 돈 절감액 ' + fmtMan(c.leak.save) + ' − 기존 적자 ' + fmtMan(c.leak.deficit) + ' = 실제 신규 배분 가능액 ' + fmtMan(c.leak.alloc));
+    if (c.p100.start) L.push('100일 프로젝트: ' + (c.p100.day==null ? '' : (c.p100.day < 1 ? '시작 전' : (c.p100.day > 100 ? '완료' : c.p100.day + '일째'))) + ', 오늘의 1밀리미터 ' + c.p100.done + '/' + c.p100.total + ' 완료 (시작일 ' + c.p100.start + ')');
     L.push('');
     L.push('계산기: ' + APP_URL);
     L.push('책 「부의 곡선」: ' + BOOK_URL);
@@ -1178,12 +1295,23 @@ details.help .body{margin-top:8px;color:var(--ink-2);line-height:1.55}
     setPath(state, el.dataset.bind, v);
     update();
   });
-  document.addEventListener('change', (e)=>{ if (e.target && e.target.id === 'cardAmounts') renderCard(); });
+  document.addEventListener('change', (e)=>{
+    const el = e.target; if (!el) return;
+    if (el.id === 'cardAmounts') renderCard();
+    if (el.dataset && el.dataset.check){
+      const parts = el.dataset.check.split(':'); const k = parts[0], i = Number(parts[1]);
+      if (!state.p100) state.p100 = {start:null, checks: blankChecks()};
+      if (!state.p100.checks[k]) state.p100.checks[k] = [];
+      state.p100.checks[k][i] = el.checked;
+      update();
+    }
+  });
   document.addEventListener('click', (e)=>{
     if (e.target && e.target.id === 'cardModal') { $('cardModal').hidden = true; return; }
     const t = e.target.closest('button'); if (!t) return;
     if (t.id === 'btnCard'){ $('cardModal').hidden = false; $('cardHint').textContent = '휴대폰에서는 ‘공유하기’로 카카오톡·인스타그램에 바로 보낼 수 있고, 이미지를 길게 누르면 사진으로 저장됩니다.'; renderCard(); }
     if (t.id === 'cardClose'){ $('cardModal').hidden = true; }
+    if (t.id === 'p100Today'){ if (!state.p100) state.p100 = {start:null, checks: blankChecks()}; state.p100.start = todayStr(); $('p100Start').value = state.p100.start; update(); }
     if (t.id === 'cardShare'){ shareCard(); }
     if (t.id === 'cardCopy'){
       const text = cardText();
