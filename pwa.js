@@ -18,6 +18,10 @@
 
   var standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
   if (standalone) return;
+  var ua = navigator.userAgent || '';
+  var isIOS = /iPhone|iPad|iPod/.test(ua) && !window.MSStream;
+  var isAndroid = /Android/i.test(ua);
+  var inApp = /KAKAOTALK|NAVER\(inapp|Instagram|FBAN|FBAV|Line\/|DaumApps/i.test(ua);
   var dismissed = false;
   try { dismissed = localStorage.getItem('lbep-install-dismissed') === '1'; } catch (e) {}
   if (dismissed) return;
@@ -37,6 +41,15 @@
     return el;
   }
 
+  if (inApp) {
+    var openBtn = isAndroid ? '<a class="pwa-go" style="text-decoration:none;display:inline-block" href="intent://csai318tv-droid.github.io/wealth-curve-lbep/#Intent;scheme=https;package=com.android.chrome;end">크롬으로 열기</a>' : '';
+    var how = isAndroid ? '카카오톡 안에서 열렸습니다. 오른쪽 버튼을 누르거나, 오른쪽 위 점 세 개(⋮) → ‘다른 브라우저로 열기’를 누르세요.' : '카카오톡 안에서 열렸습니다. 아래쪽 점 세 개(⋯) 또는 공유 버튼 → ‘Safari로 열기’를 누른 뒤, 공유 → ‘홈 화면에 추가’.';
+    setTimeout(function () {
+      banner('<div class="pwa-t"><b>앱으로 설치하려면 브라우저로 여세요</b>' + how + '</div>' + openBtn + '<button class="pwa-x" type="button" aria-label="닫기">✕</button>');
+    }, 800);
+    return;
+  }
+
   var deferred = null;
   window.addEventListener('beforeinstallprompt', function (e) {
     e.preventDefault();
@@ -49,8 +62,6 @@
     });
   });
 
-  var ua = navigator.userAgent || '';
-  var isIOS = /iPhone|iPad|iPod/.test(ua) && !window.MSStream;
   if (isIOS) {
     setTimeout(function () {
       banner('<div class="pwa-t"><b>아이폰에 앱으로 설치하기</b>사파리 아래쪽 공유 버튼(네모에 화살표)을 누르고 ‘홈 화면에 추가’를 선택하세요.</div><button class="pwa-x" type="button" aria-label="닫기">✕</button>');
