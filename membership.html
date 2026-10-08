@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>부의 곡선 100일 멤버십</title>
+<meta name="description" content="안유화 교수와 함께 14주 동안 매주 한 번 내 숫자를 확인하고 행동 하나를 실행하는 「부의 곡선」 100일 멤버십 안내.">
+<meta property="og:title" content="부의 곡선 100일 멤버십">
+<meta property="og:description" content="책을 읽는 데서 끝내지 않고, 교수님과 함께 내 인생의 손익분기점을 넘는 100일.">
+<meta property="og:image" content="https://csai318tv-droid.github.io/wealth-curve-lbep/icons/icon-512.png">
+<meta name="theme-color" content="#1d5fc2">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Gowun+Batang:wght@700&display=swap">
+<style>
+:root{--bg:#f3f5f8;--surface:#fff;--surface-2:#eaeef4;--ink:#161a21;--ink-2:#48515f;--muted:#737d8c;--line:#dde2ea;--accent:#1d5fc2;--accent-ink:#fff;--accent-soft:#e3ecfb;--good:#0ca30c}
+@media (prefers-color-scheme: dark){:root{--bg:#0f1115;--surface:#171a20;--surface-2:#20242c;--ink:#f1f3f6;--ink-2:#c2c8d2;--muted:#8f98a6;--line:#2a2f39;--accent:#4f8fe8;--accent-ink:#0b1424;--accent-soft:#1a2a45;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;font-size:16px;line-height:1.6}
+.wrap{max-width:820px;margin:0 auto;padding:32px 16px 64px}
+h1{font-family:"Gowun Batang","Apple SD Gothic Neo",serif;font-size:clamp(28px,5vw,40px);line-height:1.25;margin:8px 0 10px;text-wrap:balance}
+h2{font-family:"Gowun Batang","Apple SD Gothic Neo",serif;font-size:22px;margin:0 0 10px}
+h3{font-size:16px;margin:0 0 6px}
+p{margin:0;color:var(--ink-2)}
+.eyebrow{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.lead{font-size:18px;color:var(--ink);max-width:62ch}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px 20px;margin-top:18px}
+.btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);font:inherit;font-weight:600;border-radius:999px;padding:12px 20px;text-decoration:none;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn[aria-disabled=true]{opacity:.6;cursor:default}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:16px}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12.5px;color:var(--muted);font-weight:600}
+td.k{white-space:nowrap;font-weight:600}
+.tbl-wrap{overflow-x:auto}
+ul{margin:8px 0 0;padding-left:20px;color:var(--ink-2)}
+li{margin:4px 0}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.tile{background:var(--surface-2);border-radius:12px;padding:14px}
+.tile b{display:block;font-size:15px;margin-bottom:4px}
+.tile p{font-size:14px}
+.pending{display:inline-block;background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:4px 12px;font-size:13.5px;font-weight:600}
+.phase{display:grid;grid-template-columns:110px 1fr;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.phase:last-child{border-bottom:0}
+.phase .d{font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums}
+.phase b{display:block}
+.phase p{font-size:14.5px}
+.foot{margin-top:28px;font-size:13px;color:var(--muted);line-height:1.6}
+a{color:var(--accent)}
+@media (max-width:480px){.phase{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">안유화 「부의 곡선」 · 100일 L-BEP 프로젝트</div>
+  <h1>교수님과 함께 내 인생의 손익분기점을 넘는 100일</h1>
+  <p class="lead">책을 읽는 데서 끝내지 않습니다. 14주 동안 매주 한 번, 안유화 교수와 함께 내 숫자를 확인하고 행동 하나를 실행합니다. 계산은 앱이 하고, 결정은 모임에서 함께 하며, 100일 뒤에는 ‘한 장의 생애자산 지도’가 손에 남습니다.</p>
+  <div class="row">
+    <a class="btn" id="apply" href="#apply-info" aria-disabled="true">1기 신청 접수 준비 중</a>
+    <a class="btn ghost" href="./">계산기 먼저 써 보기</a>
+  </div>
+
+  <div class="card">
+    <h2>이런 분을 위한 모임입니다</h2>
+    <ul>
+      <li>월급이 끝난 뒤가 막연히 불안한 40~60대</li>
+      <li>책은 읽었지만 워크시트를 혼자 채우기 어려운 분</li>
+      <li>부부·가족이 같은 숫자를 보며 계획을 세우고 싶은 분</li>
+      <li>퇴직을 앞두고 활주로를 계산해야 하는 분</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>100일의 순서</h2>
+    <p>책의 100일 프로젝트 그대로 다섯 단계로 갑니다. 각 단계에서 앱의 진행판에 그 주의 ‘오늘의 1밀리미터’가 뜨고, 주간 모임에서 함께 점검합니다.</p>
+    <div style="margin-top:10px">
+      <div class="phase"><span class="d">Day 1~15</span><div><b>진단 · 불안을 숫자로 바꾼다</b><p>월 필수생활비, 세후 지속가능 현금흐름, Life Gap과 L-BEP 달성률을 확인합니다. (워크시트 ①·②)</p></div></div>
+      <div class="phase"><span class="d">Day 16~35</span><div><b>배분 · 돈에 역할을 부여한다</b><p>여섯 봉투를 만들고, 새는 돈을 찾아 막고, 비상자금을 확인합니다. (워크시트 ③·④)</p></div></div>
+      <div class="phase"><span class="d">Day 36~55</span><div><b>성장 · 자산소득곡선의 첫 점을 만든다</b><p>투자 원칙, 분산, 하락장 행동규칙, 가족 돈 행동 시스템을 세웁니다. (워크시트 ⑤~⑧)</p></div></div>
+      <div class="phase"><span class="d">Day 56~80</span><div><b>확장 · 소득의 통로를 넓힌다</b><p>AI 시대 노출도, 디지털자산 원칙, 생애단계별 돈의 임무, 은퇴 후 현금흐름을 점검합니다. (워크시트 ⑨~⑫)</p></div></div>
+      <div class="phase"><span class="d">Day 81~100</span><div><b>방어·승계 · 가족이 이어갈 시스템을 만든다</b><p>외부충격 점검, 가족 정보함, 보험·상조, 승계와 비상 절차를 정리합니다. (워크시트 ⑬·⑭)</p></div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>매주 이렇게 진행합니다</h2>
+    <div class="grid">
+      <div class="tile"><b>① 앱 진행판</b><p>그 주의 ‘오늘의 1밀리미터’를 앱에서 체크합니다. 숫자는 내 기기에만 저장됩니다.</p></div>
+      <div class="tile"><b>② 주간 모임 60분</b><p>온라인으로 만납니다. 교수님 강의 20분, 질문과 답변 40분.</p></div>
+      <div class="tile"><b>③ 질문방</b><p>모임 사이에 막히는 것은 질문방에 올리고 답을 받습니다.</p></div>
+      <div class="tile"><b>④ 100일 수료</b><p>‘한 장의 생애자산 지도’를 완성하고 교수님의 한 줄 피드백을 받습니다.</p></div>
+    </div>
+  </div>
+
+  <div class="card" id="apply-info">
+    <h2>1기 모집 안내</h2>
+    <div class="tbl-wrap">
+    <table>
+      <tr><td class="k">기간</td><td>14주 (100일)</td></tr>
+      <tr><td class="k">모임</td><td>주 1회 온라인 60분 · <span class="pending" id="schedule">요일·시간 곧 공개</span></td></tr>
+      <tr><td class="k">인원</td><td>소수 정원 (질문에 모두 답할 수 있는 규모)</td></tr>
+      <tr><td class="k">참가비</td><td><span class="pending" id="price">곧 공개</span></td></tr>
+      <tr><td class="k">준비물</td><td>책 「부의 곡선」, 휴대폰에 설치한 L-BEP 계산기</td></tr>
+      <tr><td class="k">신청</td><td><span class="pending" id="apply-how">신청 접수 방법 곧 공개</span></td></tr>
+    </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>자주 묻는 질문</h2>
+    <h3>책이 꼭 있어야 하나요?</h3><p>예. 모임은 책의 워크시트 순서를 그대로 따릅니다. <a href="https://product.kyobobook.co.kr/detail/S000220567836" target="_blank" rel="noopener">교보문고에서 보기</a></p>
+    <h3 style="margin-top:12px">내 돈 사정을 공개해야 하나요?</h3><p>아니요. 숫자는 본인 기기의 앱에만 저장됩니다. 모임에서는 원하는 만큼만, 보통은 ‘구간’(예: 완충 구간)만 이야기합니다.</p>
+    <h3 style="margin-top:12px">투자 종목을 추천해 주나요?</h3><p>아니요. 이 모임은 생애자산 구조를 세우는 교육 프로그램이며, 개인 맞춤 투자 자문이나 특정 상품 권유를 하지 않습니다.</p>
+    <h3 style="margin-top:12px">모임을 놓치면요?</h3><p>녹화본과 질문방으로 따라올 수 있습니다. 중요한 것은 매주 1밀리미터를 실행하는 것입니다.</p>
+  </div>
+
+  <p class="foot">신청 시 제공하는 이름과 연락처는 모임 안내와 운영에만 사용하며, 모임이 끝나면 삭제합니다. 앱의 입력값은 어떤 서버로도 전송되지 않습니다. <a href="privacy.html">개인정보처리방침·이용 안내</a> · <a href="./">L-BEP 계산기</a></p>
+</div>
+</body>
+</html>
