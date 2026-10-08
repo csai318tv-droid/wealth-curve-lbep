@@ -54,6 +54,8 @@
   window.addEventListener('beforeinstallprompt', function (e) {
     e.preventDefault();
     deferred = e;
+    window.__lbepDeferredPrompt = e;
+    var nat = document.getElementById('installNative'); if (nat) nat.hidden = false;
     var el = banner('<div class="pwa-t"><b>휴대폰에 앱으로 설치하기</b>홈 화면에 아이콘이 생기고, 인터넷이 없어도 열립니다.</div><button class="pwa-go" type="button">설치</button><button class="pwa-x" type="button" aria-label="닫기">✕</button>');
     el.querySelector('.pwa-go').addEventListener('click', function () {
       if (!deferred) return;
