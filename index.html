@@ -3,17 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="안유화 「부의 곡선」 L-BEP 계산기. 월 필수생활비와 세후 지속가능 월 현금흐름으로 Life Gap, L-BEP 달성률, 현재 구간, 세 가지 미래 시나리오를 계산합니다. 입력값은 내 기기에만 저장됩니다.">
-<meta property="og:title" content="부의 곡선 L-BEP 계산기">
-<meta property="og:description" content="내 인생의 손익분기점을 숫자로 바꾸는 도구. 로그인·설치 없이 사용.">
+<meta name="description" content="?덉쑀???뚮???怨≪꽑??L-BEP 怨꾩궛湲? ???꾩닔?앺솢鍮꾩? ?명썑 吏?띻??????꾧툑?먮쫫?쇰줈 Life Gap, L-BEP ?ъ꽦瑜? ?꾩옱 援ш컙, ??媛吏 誘몃옒 ?쒕굹由ъ삤瑜?怨꾩궛?⑸땲?? ?낅젰媛믪? ??湲곌린?먮쭔 ??λ맗?덈떎.">
+<meta property="og:title" content="遺??怨≪꽑 L-BEP 怨꾩궛湲?>
+<meta property="og:description" content="???몄깮???먯씡遺꾧린?먯쓣 ?レ옄濡?諛붽씀???꾧뎄. 濡쒓렇?맞룹꽕移??놁씠 ?ъ슜.">
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://csai318tv-droid.github.io/wealth-curve-lbep/icons/icon-512.png">
 <meta name="robots" content="index,follow">
-<meta name="theme-color" content="#1d5fc2"><meta name="application-name" content="L-BEP 계산기">
+<meta name="theme-color" content="#1d5fc2"><meta name="application-name" content="L-BEP 怨꾩궛湲?>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="L-BEP 계산기">
+<meta name="apple-mobile-web-app-title" content="L-BEP 怨꾩궛湲?>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><title>부의 곡선 L-BEP 계산기</title>
@@ -1542,10 +1542,10 @@ details.help .body{margin-top:8px;color:var(--ink-2);line-height:1.55}
     }
     if (t.id === 'wdToggle'){ const h = $('wdHelp'); h.classList.toggle('open'); t.textContent = h.classList.contains('open') ? '계산 도우미 닫기' : '계산 도우미 열기'; if (h.classList.contains('open')) $('wdAssets').focus(); }
     if (t.id === 'wdApply'){ const c = compute(); state.income.withdraw = Math.round(c.wdMonthly); $('inc_withdraw').value = state.income.withdraw; update(); }
-    if (t.id === 'btnDemo'){ state = demoState(); fillInputsFromState(); update(); $('saveToast').textContent = '김상철의 숫자를 불러왔습니다. 항목별 필수 금액은 책의 합계(380만 원)에 맞춘 예시입니다.'; }
+    if (t.id === 'btnDemo'){ const keep = {history: state.history || [], p100: state.p100}; state = demoState(); state.history = keep.history; if (keep.p100) state.p100 = keep.p100; fillInputsFromState(); update(); $('saveToast').textContent = '김상철의 숫자를 불러왔습니다. 항목별 필수 금액은 책의 합계(380만 원)에 맞춘 예시입니다. 월별 기록과 100일 진행판은 그대로 두었습니다.'; }
     if (t.id === 'btnReset'){ $('resetConfirm').hidden = false; }
     if (t.id === 'btnResetNo'){ $('resetConfirm').hidden = true; }
-    if (t.id === 'btnResetYes'){ state = blankState(); fillInputsFromState(); try{ localStorage.removeItem(STORE_KEY);}catch(e){} update(); $('resetConfirm').hidden = true; $('saveToast').textContent = '모두 지웠습니다. 0에서 다시 시작합니다.'; }
+    if (t.id === 'btnResetYes'){ const keep = state.history || []; state = blankState(); state.history = keep; fillInputsFromState(); update(); $('resetConfirm').hidden = true; $('saveToast').textContent = '입력한 숫자를 모두 지웠습니다. 월별 기록은 남겨 두었고, 기록표에서 하나씩 지울 수 있습니다.'; }
     if (t.id === 'btnCopy'){
       const text = $('sumBox').textContent;
       const done = ()=>{ $('copyToast').textContent = '복사했습니다.'; };
