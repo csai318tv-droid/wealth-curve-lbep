@@ -169,6 +169,12 @@ a.btn{display:inline-flex;align-items:center;text-decoration:none}
 .checks label.done{color:var(--muted);text-decoration:line-through}
 .wcard .wfoot{display:flex;flex-wrap:wrap;gap:8px 14px;margin-top:10px;font-size:13px;color:var(--muted);align-items:center}
 input[type=date].text{width:auto;min-width:160px}
+.install-steps{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));margin-top:12px}
+.install-steps>div{background:var(--surface-2);border-radius:12px;padding:12px 14px;font-size:14px}
+.install-steps b{font-size:14.5px}
+.install-steps ol{margin:6px 0 0;padding-left:20px;color:var(--ink-2);line-height:1.5}
+.install-steps li{margin:3px 0}
+:root.standalone #btnInstall{display:none}
 .btnrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .toast{font-size:13.5px;color:var(--ink-2)}
 
@@ -302,10 +308,24 @@ details.help .body{margin-top:8px;color:var(--ink-2);line-height:1.55}
       <p class="small" style="margin-top:6px">숫자는 이 기기의 브라우저에만 저장되며 어디로도 전송되지 않습니다. 책 속 김상철의 숫자로 먼저 연습해 보려면 아래 ‘김상철 예시 불러오기’를 누르십시오.</p>
     </div>
     <div class="btnrow">
+      <button class="btn sm primary" type="button" id="btnInstall">휴대폰에 앱으로 설치</button>
       <button class="btn sm" type="button" id="btnDemo">김상철 예시 불러오기</button>
       <button class="btn sm" type="button" id="btnReset">모두 지우기</button>
       <a class="btn sm book" href="https://product.kyobobook.co.kr/detail/S000220567836" target="_blank" rel="noopener">책 「부의 곡선」 보기</a>
       <span class="toast" id="saveToast"></span>
+    </div>
+    <div class="modal" id="installModal" hidden>
+      <div class="modal-in" role="dialog" aria-labelledby="installTitle">
+        <div class="modal-head"><h3 id="installTitle">휴대폰에 앱으로 설치하기</h3><button class="btn sm" type="button" id="installClose">닫기</button></div>
+        <p class="note">앱스토어에서 내려받는 방식이 아니라, 이 주소를 홈 화면에 붙이는 방식입니다. 30초면 되고, 설치 후에는 아이콘으로 열리며 인터넷 없이도 작동합니다. 숫자는 휴대폰 안에만 저장됩니다.</p>
+        <div class="callout" id="installInApp" hidden style="margin-top:10px"></div>
+        <div id="installNative" hidden style="margin-top:10px"><button class="btn primary" type="button" id="installNow">지금 바로 설치</button> <span class="small muted">이 버튼이 보이면 한 번만 누르면 끝입니다.</span></div>
+        <div class="install-steps">
+          <div><b>안드로이드 (삼성·크롬)</b><ol><li><b>크롬</b>으로 이 주소를 엽니다. 카카오톡 안에서 열렸다면 오른쪽 위 ⋮ → ‘다른 브라우저로 열기’.</li><li>오른쪽 위 점 세 개(⋮) → <b>홈 화면에 추가</b> 또는 <b>앱 설치</b>.</li><li><b>설치</b>를 누르면 홈 화면에 파란 아이콘이 생깁니다.</li></ol></div>
+          <div><b>아이폰 (사파리)</b><ol><li><b>사파리</b>로 이 주소를 엽니다. 카카오톡이나 크롬 앱 안에서는 되지 않습니다.</li><li>화면 아래 <b>공유 버튼</b>(네모에 위 화살표) → <b>홈 화면에 추가</b>.</li><li>오른쪽 위 <b>추가</b>를 누르면 아이콘이 생깁니다.</li></ol></div>
+        </div>
+        <p class="note" style="margin-top:10px">주소: <b>csai318tv-droid.github.io/wealth-curve-lbep</b> <button class="btn sm" type="button" id="installCopy">주소 복사</button> <span class="small muted" id="installCopyMsg"></span></p>
+      </div>
     </div>
     <div class="confirm" id="resetConfirm" hidden>
       <span>입력한 숫자를 모두 지울까요?</span>
@@ -1273,6 +1293,25 @@ details.help .body{margin-top:8px;color:var(--ink-2);line-height:1.55}
     hint.textContent = '이 기기에서는 바로 공유가 되지 않습니다. 이미지를 길게 누르거나(휴대폰) 오른쪽 클릭(PC)으로 저장한 뒤 올려 주세요. ‘문구 복사’로 글은 바로 붙여 넣을 수 있습니다.';
   }
 
+  // ---------- install guide ----------
+  function openInstall(){
+    const ua = navigator.userAgent || '';
+    const isAndroid = /Android/i.test(ua);
+    const inApp = /KAKAOTALK|NAVER\(inapp|Instagram|FBAN|FBAV|Line\/|DaumApps/i.test(ua);
+    const box = $('installInApp');
+    if (inApp){
+      box.hidden = false;
+      box.innerHTML = '<b>지금 카카오톡(또는 다른 앱) 안에서 열렸습니다.</b> 여기서는 설치가 되지 않습니다. ' + (isAndroid
+        ? '<a class="btn sm primary" style="margin-top:6px" href="intent://csai318tv-droid.github.io/wealth-curve-lbep/#Intent;scheme=https;package=com.android.chrome;end">크롬으로 열기</a> 를 누르거나, 오른쪽 위 ⋮ → ‘다른 브라우저로 열기’를 누른 뒤 아래 순서대로 하세요.'
+        : '아래쪽 ⋯ 또는 공유 버튼 → ‘Safari로 열기’를 누른 뒤 아래 순서대로 하세요.');
+    } else { box.hidden = true; }
+    $('installNative').hidden = !window.__lbepDeferredPrompt;
+    $('installCopyMsg').textContent = '';
+    $('installModal').hidden = false;
+  }
+  try { if ((window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true) document.documentElement.classList.add('standalone'); } catch(e){}
+  try { if (/[?&]install=1/.test(location.search)) setTimeout(openInstall, 600); } catch(e){}
+
   // ---------- persistence ----------
   let saveTimer = null;
   function save(){
@@ -1311,6 +1350,15 @@ details.help .body{margin-top:8px;color:var(--ink-2);line-height:1.55}
     const t = e.target.closest('button'); if (!t) return;
     if (t.id === 'btnCard'){ $('cardModal').hidden = false; $('cardHint').textContent = '휴대폰에서는 ‘공유하기’로 카카오톡·인스타그램에 바로 보낼 수 있고, 이미지를 길게 누르면 사진으로 저장됩니다.'; renderCard(); }
     if (t.id === 'cardClose'){ $('cardModal').hidden = true; }
+    if (t.id === 'btnInstall'){ openInstall(); }
+    if (t.id === 'installClose'){ $('installModal').hidden = true; }
+    if (t.id === 'installNow'){ const p = window.__lbepDeferredPrompt; if (p){ p.prompt(); p.userChoice.then(()=>{ window.__lbepDeferredPrompt = null; $('installModal').hidden = true; }, ()=>{}); } }
+    if (t.id === 'installCopy'){
+      const text = APP_URL;
+      const done = ()=>{ $('installCopyMsg').textContent = '복사했습니다. 크롬이나 사파리 주소창에 붙여 넣으세요.'; };
+      const fail = ()=>{ $('installCopyMsg').textContent = text; };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, fail); else fail();
+    }
     if (t.id === 'p100Today'){ if (!state.p100) state.p100 = {start:null, checks: blankChecks()}; state.p100.start = todayStr(); $('p100Start').value = state.p100.start; update(); }
     if (t.id === 'cardShare'){ shareCard(); }
     if (t.id === 'cardCopy'){
